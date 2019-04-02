@@ -1,0 +1,25 @@
+services:
+
+    Nzo\ElasticQueryBundle\Search\ElasticQuerySearch: "@nzo.elastic_query.search"
+
+    nzo.elastic_query.search_manager:
+        class: Nzo\ElasticQueryBundle\Manager\SearchManager
+        arguments:
+            - "%nzo_elastic_query.index_configs%"
+            - "%nzo_elastic_index.prefix%"
+
+    nzo.elastic_query.search_query_validator:
+        class: Nzo\ElasticQueryBundle\Validator\SearchQueryValidator
+        arguments:
+            - '@doctrine.orm.default_entity_manager'
+
+    nzo.elastic_query.schema_validator:
+        class: Nzo\ElasticQueryBundle\Validator\SchemaValidator
+
+    nzo.elastic_query.search:
+        class: Nzo\ElasticQueryBundle\Search\ElasticQuerySearch
+        arguments:
+            - "@nzo.elastic_query.search_query_validator"
+            - "@nzo.elastic_query.schema_validator"
+            - "@nzo.elastic_query.search_manager"
+            - "@fos_elastica.repository_manager"

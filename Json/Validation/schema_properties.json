@@ -1,0 +1,90 @@
+{
+  "properties": {
+    "field": {
+      "type": "string",
+      "minLength": 2
+    },
+    "match": {
+      "type": ["string", "boolean", "number"]
+    },
+    "notmatch": {
+      "type": ["string", "boolean", "number"]
+    },
+    "in": {
+      "type": "array",
+      "items": {
+        "type": ["string", "boolean", "number"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "notin": {
+      "type": "array",
+      "items": {
+        "type": ["string", "boolean", "number"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "gt": {
+      "type": ["number", "string"]
+    },
+    "gte": {
+      "type": ["number", "string"]
+    },
+    "lt": {
+      "type": ["number", "string"]
+    },
+    "lte": {
+      "type": ["number", "string"]
+    },
+    "range": {
+      "type": "array",
+      "items": {
+        "type": ["number", "string"]
+      },
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true
+    },
+    "or": {
+      "type": [
+        "object",
+        "array"
+      ],
+      "oneOf": [
+        {
+          "type": "object",
+          "$ref": "#"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#"
+          }
+        }
+      ]
+    },
+    "and": {
+      "type": [
+        "object",
+        "array"
+      ],
+      "oneOf": [
+        {
+          "type": "object",
+          "$ref": "#"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#"
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

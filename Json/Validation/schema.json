@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Api search and filter json schema validation",
+  "required": [ "query"],
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "query": {
+      "type": "object",
+      "description": "The query entry point",
+      "required": ["search"],
+      "properties": {
+        "search": {
+          "type": "object",
+          "properties": {
+            "or": {
+              "type": [
+                "object",
+                "array"
+              ],
+              "oneOf": [
+                {
+                  "type": "object",
+                  "$ref": "schema_properties.json"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "schema_properties.json"
+                  }
+                }
+              ]
+            },
+            "and": {
+              "type": [
+                "object",
+                "array"
+              ],
+              "oneOf": [
+                {
+                  "type": "object",
+                  "$ref": "schema_properties.json"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "schema_properties.json"
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "maxProperties": 1
+        },
+        "sort": {
+          "type": "array",
+          "description": "The sort query",
+          "items": {
+            "type": "object",
+            "required": [ "field", "order"],
+            "properties": {
+              "field" : {"type": "string", "minLength": 2},
+              "order" : {"type": "string", "enum": ["ASC", "DESC"]}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
