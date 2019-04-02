@@ -1,11 +1,11 @@
 <?php
 
-namespace Nzo\ElasticQueryBundle\Compiler;
+namespace Nzo\ElasticQueryBundle\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class ElasticQueryPass implements CompilerPassInterface
+class NzoElasticQueryPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {

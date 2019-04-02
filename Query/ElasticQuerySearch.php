@@ -1,6 +1,6 @@
 <?php
 
-namespace Nzo\ElasticQueryBundle\Search;
+namespace Nzo\ElasticQueryBundle\Query;
 
 use FOS\ElasticaBundle\Manager\RepositoryManagerInterface;
 use Nzo\ElasticQueryBundle\Manager\SearchManager;
@@ -47,7 +47,7 @@ class ElasticQuerySearch
      * @param string $limit
      * @return array
      */
-    protected function search($query, $entityNamespace, $page = null, $limit = null)
+    public function search($query, $entityNamespace, $page = null, $limit = null)
     {
         try {
             $query = !is_array($query) ? json_decode($query) : $query;

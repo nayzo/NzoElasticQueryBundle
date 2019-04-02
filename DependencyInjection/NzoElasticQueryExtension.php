@@ -7,7 +7,7 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
-class NzoUrlEncryptorExtension extends Extension
+class NzoElasticQueryExtension extends Extension
 {
     /**
      * @param array $configs

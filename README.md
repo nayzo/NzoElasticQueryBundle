@@ -21,7 +21,7 @@ public function registerBundles()
 {
     return array(
         // ...
-        new Nzo\ElasticQueryBundle\ElasticQueryBundle(),
+        new Nzo\ElasticQueryBundle\NzoElasticQueryBundle(),
     );
 }
 ```
@@ -35,6 +35,7 @@ Configure your secret encryption key:
 # config/packages/nzo_elastic_query.yaml (Symfony V4)
 
 nzo_elastic_query:
+    elastic_index_prefix: 'the_index_prefix'
     
 ```
 
