@@ -22,4 +22,4 @@ services:
             - "@nzo.elastic_query.search_query_validator"
             - "@nzo.elastic_query.schema_validator"
             - "@nzo.elastic_query.search_manager"
-            - "@fos_elastica.repository_manager"
+            - "@fos_elastica.manager.orm"
