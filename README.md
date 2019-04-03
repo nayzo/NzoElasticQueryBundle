@@ -1,12 +1,20 @@
 NzoElasticQueryBundle
 =====================
 
-- Symfony bundle used to execute search based on simple query language on Elasticsearch system.
+- Symfony bundle used to execute search based on simple query language for the Elasticsearch system.
+- This bundle is based on the FOSElasticaBundle implementation cf: https://github.com/FriendsOfSymfony/FOSElasticaBundle
+
 ##### Features included:
 - Search: match, notmatch, in, notin, gte, gt, lte, lt, range.
 - Sort
 - Limitation
 - Pagination
+
+
+##### Requirement:
+
+- Symfony 3.4 or 4.x
+
 
 Installation
 ------------
@@ -68,15 +76,45 @@ class MyClass
      */
     public funtion foo($query, $entityNamespace, $page = null, $limit = null)
     {
+        // $entityNamespace === 'App\Entity\FooBar'
+        
         return $this->elasticQuerySearch->search($query, $entityNamespace, $page, $limit);
     }
 }
 ```
 
-Payload Exemple
+Configure index
+---------------
+```yaml
+fos_elastica:
+    indexes:
+        foo_bar: # the index name must reflect the entity name in "snake_case", exp: foo_bar
+            types:
+                fooBar: # the type name must reflect the entity name in "camelCase", exp: fooBar
+                    properties:
+                        id:
+                            type: keyword
+                            index: true
+                        createdAt:
+                            type:   date
+                    persistence:
+                        driver: orm
+                        model: App\Entity\FooBar
+                        provider: ~
+                        finder: ~
+                        repository: Nzo\ElasticQueryBundle\Repository\SearchRepository
+```
+
+Populate index
+--------------
+```bash
+$ bin/console fos:elastica:populate
+```
+
+Payload Example
 ---------------
 
-POST  http://exemple.fr/search/myEnitity?page=1&limit=2
+POST  http://example.fr/search/myEnitity?page=1&limit=2
 
 ```json
 {
@@ -128,3 +166,4 @@ POST  http://exemple.fr/search/myEnitity?page=1&limit=2
     }
 }
 ```
+

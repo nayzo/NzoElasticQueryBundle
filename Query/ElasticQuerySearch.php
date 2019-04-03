@@ -49,29 +49,29 @@ class ElasticQuerySearch
      */
     public function search($query, $entityNamespace, $page = null, $limit = null)
     {
+        $query = !is_array($query) ? json_decode($query) : $query;
+        $this->searchQueryValidator->resetValidationErrors();
+
+        if (!empty($query->query)) {
+            if (empty($query->query->search) || is_array($query->query->search)) {
+                $query->query->search = new \stdClass;
+            }
+        }
+
+        if (!$this->schemaValidator->isJsonSchemaValid($query)) {
+            $this->getValidationErrorResponse(
+                $this->searchQueryValidator->getFormattedValidationErrors()
+            );
+        }
+
+        $this->searchQueryValidator->checkSearchQuery(get_object_vars($query->query->search), $entityNamespace);
+        if (!$this->searchQueryValidator->isSearchQueryValid()) {
+            $this->getValidationErrorResponse(
+                $this->searchQueryValidator->getFormattedValidationErrors()
+            );
+        }
+
         try {
-            $query = !is_array($query) ? json_decode($query) : $query;
-            $this->searchQueryValidator->resetValidationErrors();
-
-            if (!empty($query->query)) {
-                if (empty($query->query->search) || is_array($query->query->search)) {
-                    $query->query->search = new \stdClass;
-                }
-            }
-
-            if (!$this->schemaValidator->isJsonSchemaValid($query)) {
-                $this->getValidationErrorResponse(
-                    $this->searchQueryValidator->getFormattedValidationErrors()
-                );
-            }
-
-            $this->searchQueryValidator->checkSearchQuery(get_object_vars($query->query->search), $entityNamespace);
-            if (!$this->searchQueryValidator->isSearchQueryValid()) {
-                $this->getValidationErrorResponse(
-                    $this->searchQueryValidator->getFormattedValidationErrors()
-                );
-            }
-
             $elasticQuery = $this->searchManager->resolveQueryMapping($query, $entityNamespace);
 
             return $this->repositoryManager->getRepository($entityNamespace)->search($elasticQuery, $page, $limit);
