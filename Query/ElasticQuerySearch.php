@@ -41,10 +41,10 @@ class ElasticQuerySearch
     }
 
     /**
-     * @param string|array $request
-     * @param string $entityNamespace
-     * @param int $page
-     * @param string $limit
+     * @param string|array $query  (json or array)
+     * @param string $entityNamespace The FQCN (fully qualified class name) of the entity to execute the search on.
+     * @param null|int $page
+     * @param null|int $limit
      * @return array
      */
     public function search($query, $entityNamespace, $page = null, $limit = null)
