@@ -47,7 +47,7 @@ class ElasticQuerySearch
     }
 
     /**
-     * @param string|array $query (json or array)
+     * @param string|array|object $query (json, array or object)
      * @param string $entityNamespace The FQCN (fully qualified class name) of the entity to execute the search on.
      * @param null|int $page
      * @param null|int $limit
@@ -55,8 +55,12 @@ class ElasticQuerySearch
      */
     public function search($query, $entityNamespace, $page = null, $limit = null)
     {
-        $query = !is_array($query) ? json_decode($query) : $query;
-        $this->searchQueryValidator->resetValidationErrors();
+        // $query must be or become an object
+        if (is_array($query)) {
+            $query = json_decode(json_encode($query));
+        } elseif (is_string($query)) {
+            $query = json_decode($query);
+        }
 
         if (!empty($query->query)) {
             if (empty($query->query->search) || is_array($query->query->search)) {
