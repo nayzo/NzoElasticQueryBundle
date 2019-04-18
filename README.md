@@ -46,7 +46,10 @@ Configure the bundle:
 # config/packages/nzo_elastic_query.yaml (Symfony V4)
 
 nzo_elastic_query:
-    elastic_index_prefix: 'the_index_prefix'  # optional
+    elastic_index_prefix:  # optional (the index prefix)
+    default_page_number:   # optional (default 1)
+    limit_per_page:        # optional (default 100)
+    items_max_limit:       # optional (default 1000)
     
 ```
 

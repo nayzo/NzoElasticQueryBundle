@@ -23,3 +23,7 @@ services:
             - "@nzo.elastic_query.schema_validator"
             - "@nzo.elastic_query.search_manager"
             - "@fos_elastica.manager.orm"
+            -
+                - '%nzo_elastic_index.default_page_number%'
+                - '%nzo_elastic_index.limit_per_page%'
+                - '%nzo_elastic_index.items_max_limit%'
