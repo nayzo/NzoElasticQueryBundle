@@ -27,21 +27,27 @@ class ElasticQuerySearch
      * @var RepositoryManagerInterface
      */
     private $repositoryManager;
+    /**
+     * @var array
+     */
+    private $options;
 
     public function __construct(
         SearchQueryValidator $searchQueryValidator,
         SchemaValidator $schemaValidator,
         SearchManager $searchManager,
-        RepositoryManagerInterface $repositoryManager
+        RepositoryManagerInterface $repositoryManager,
+        array $options
     ) {
         $this->searchQueryValidator = $searchQueryValidator;
         $this->schemaValidator = $schemaValidator;
         $this->searchManager = $searchManager;
         $this->repositoryManager = $repositoryManager;
+        $this->options = $options;
     }
 
     /**
-     * @param string|array $query  (json or array)
+     * @param string|array $query (json or array)
      * @param string $entityNamespace The FQCN (fully qualified class name) of the entity to execute the search on.
      * @param null|int $page
      * @param null|int $limit
@@ -74,7 +80,12 @@ class ElasticQuerySearch
         try {
             $elasticQuery = $this->searchManager->resolveQueryMapping($query, $entityNamespace);
 
-            return $this->repositoryManager->getRepository($entityNamespace)->search($elasticQuery, $page, $limit);
+            return $this->repositoryManager->getRepository($entityNamespace)->search(
+                $elasticQuery,
+                $page,
+                $limit,
+                $this->options
+            );
         } catch (\Exception $exception) {
             $this->getValidationErrorResponse(
                 [

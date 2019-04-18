@@ -22,5 +22,8 @@ class NzoElasticQueryExtension extends Extension
         $loader->load('services.yml');
 
         $container->setParameter('nzo_elastic_index.prefix', $config['elastic_index_prefix']);
+        $container->setParameter('nzo_elastic_index.default_page_number', $config['default_page_number']);
+        $container->setParameter('nzo_elastic_index.limit_per_page', $config['limit_per_page']);
+        $container->setParameter('nzo_elastic_index.items_max_limit', $config['items_max_limit']);
     }
 }

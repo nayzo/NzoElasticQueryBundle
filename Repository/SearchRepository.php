@@ -6,26 +6,24 @@ use FOS\ElasticaBundle\Repository;
 
 class SearchRepository extends Repository
 {
-    const PAGE_DEFAULT = 1;
-    const LIMIT_DEFAULT = 100;
-    const LIMIT_MAX = 1000;
-
     /**
      * @param array $query
-     * @param int $page
-     * @param int $limit
+     * @param int|null $page
+     * @param int|null $limit
+     * @param array $options
      * @return array
      */
-    public function search(array $query, $page, $limit)
+    public function search(array $query, $page, $limit, array $options)
     {
+        list($defaultPageNumber, $limitPerPage, $itemsMaxLimit) = $options;
         if (empty($page) || !is_int($page) || $page < 1) {
-            $page = self::PAGE_DEFAULT;
+            $page = $defaultPageNumber;
         }
 
         if (empty($limit) || !is_int($limit) || $limit < 1) {
-            $limit = self::LIMIT_DEFAULT;
+            $limit = $limitPerPage;
         } else {
-            $limit = min($limit, self::LIMIT_MAX);
+            $limit = min($limit, $itemsMaxLimit);
         }
 
         $adapter = $this->finder->createPaginatorAdapter($query)->getResults(($page - 1) * $limit, $limit);

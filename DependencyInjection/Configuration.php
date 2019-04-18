@@ -25,6 +25,15 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('elastic_index_prefix')
                     ->defaultValue('')
                 ->end()
+                ->integerNode('default_page_number')
+                    ->defaultValue(1)
+                ->end()
+                ->integerNode('limit_per_page')
+                    ->defaultValue(100)
+                ->end()
+                ->integerNode('items_max_limit')
+                    ->defaultValue(1000)
+                ->end()
             ->end();
 
         return $treeBuilder;
