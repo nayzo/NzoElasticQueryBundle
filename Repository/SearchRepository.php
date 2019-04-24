@@ -10,10 +10,10 @@ class SearchRepository extends Repository
      * @param array $query
      * @param int|null $page
      * @param int|null $limit
-     * @param array $options
+     * @param array $options (int defaultPageNumber, int limitPerPage, int itemsMaxLimit)
      * @return array
      */
-    public function search(array $query, $page, $limit, array $options)
+    public function executeSearch(array $query, $page, $limit, array $options)
     {
         list($defaultPageNumber, $limitPerPage, $itemsMaxLimit) = $options;
         if (empty($page) || !is_int($page) || $page < 1) {

@@ -84,7 +84,7 @@ class ElasticQuerySearch
         try {
             $elasticQuery = $this->searchManager->resolveQueryMapping($query, $entityNamespace);
 
-            return $this->repositoryManager->getRepository($entityNamespace)->search(
+            return $this->repositoryManager->getRepository($entityNamespace)->executeSearch(
                 $elasticQuery,
                 $page,
                 $limit,
