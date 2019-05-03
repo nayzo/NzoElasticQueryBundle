@@ -74,6 +74,7 @@ class ElasticQuerySearch
             );
         }
 
+        $this->searchQueryValidator->resetValidationErrors();
         $this->searchQueryValidator->checkSearchQuery(get_object_vars($query->query->search), $entityNamespace);
         if (!$this->searchQueryValidator->isSearchQueryValid()) {
             $this->getValidationErrorResponse(
@@ -98,6 +99,11 @@ class ElasticQuerySearch
                 ]
             );
         }
+    }
+
+    public function resetValidationErrors()
+    {
+        $this->searchQueryValidator->resetValidationErrors();
     }
 
     private function getValidationErrorResponse(array $formattedErrors)
