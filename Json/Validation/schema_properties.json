@@ -5,10 +5,10 @@
       "minLength": 2
     },
     "match": {
-      "type": ["string", "boolean", "number"]
+      "type": ["string", "boolean", "number", "null"]
     },
     "notmatch": {
-      "type": ["string", "boolean", "number"]
+      "type": ["string", "boolean", "number", "null"]
     },
     "in": {
       "type": "array",
