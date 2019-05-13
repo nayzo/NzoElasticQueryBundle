@@ -2,37 +2,28 @@
 
 namespace Nzo\ElasticQueryBundle\Manager;
 
+use Nzo\ElasticQueryBundle\Service\IndexTools;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class SearchManager
 {
     /**
-     * @var string
+     * @var IndexTools
      */
-    private $elasticType;
+    private $indexTools;
     /**
-     * @var string
+     * @var array
      */
-    private $elasticIndex;
-    /**
-     * @var string
-     */
-    private $appElasticIndexConfigs;
-    /**
-     * @var string
-     */
-    private $elasticIndexPrefix;
+    private $indexProperties;
 
     /**
      * SearchManager constructor.
      *
-     * @param string $appElasticIndexConfigs
-     * @param string $elasticIndexPrefix
+     * @param IndexTools $indexTools
      */
-    public function __construct($appElasticIndexConfigs, $elasticIndexPrefix)
+    public function __construct(IndexTools $indexTools)
     {
-        $this->appElasticIndexConfigs = $appElasticIndexConfigs;
-        $this->elasticIndexPrefix = $elasticIndexPrefix;
+        $this->indexTools = $indexTools;
     }
 
     /**
@@ -45,8 +36,7 @@ class SearchManager
 
         $resultQuery['query'] = $this->createQuery($query->search);
         if (!empty($query->sort)) {
-            $this->elasticType = lcfirst(substr($entityNamespace, strrpos($entityNamespace, '\\') + 1));
-            $this->elasticIndex = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $this->elasticType));
+            $this->indexProperties = $this->indexTools->getIndexMappingProperties($entityNamespace);
             $resultQuery['sort'] = $this->createSort($query->sort);
         }
 
@@ -284,14 +274,11 @@ class SearchManager
      */
     private function sortResolver($baseField)
     {
-        $index = empty($this->elasticIndexPrefix) ? $this->elasticIndex : $this->elasticIndexPrefix.'.'.$this->elasticIndex;
-        $indexProperties = $this->appElasticIndexConfigs[$index]['types'][$this->elasticType]['mapping']['properties'];
-
         if (strpos($baseField, '.') !== false) { // nested
             list($nestedEntity, $field) = explode('.', $baseField);
-            $fieldType = $indexProperties[$nestedEntity]['properties'][$field]['type'];
+            $fieldType = $this->indexProperties[$nestedEntity]['properties'][$field]['type'];
         } else {
-            $fieldType = $indexProperties[$baseField]['type'];
+            $fieldType = $this->indexProperties[$baseField]['type'];
         }
 
         return 'text' === $fieldType ? $baseField.'.sort' : $baseField;
