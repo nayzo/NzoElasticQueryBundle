@@ -25,8 +25,16 @@ class IndexTools
         $this->elasticIndexPrefix = $elasticIndexPrefix;
     }
 
+    /**
+     * @param string $entityNamespace
+     * @return string
+     */
     public function getElasticType(string $entityNamespace)
     {
+        if (strpos($entityNamespace, '\\') === false) {
+            return lcfirst($entityNamespace);
+        }
+
         return lcfirst(substr($entityNamespace, strrpos($entityNamespace, '\\') + 1));
     }
 
