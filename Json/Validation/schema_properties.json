@@ -10,6 +10,9 @@
     "notmatch": {
       "type": ["string", "boolean", "number", "null"]
     },
+    "isnull": {
+	  "type": ["boolean"]
+    },
     "in": {
       "type": "array",
       "items": {

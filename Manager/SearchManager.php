@@ -194,6 +194,18 @@ class SearchManager
 
                     return $buffer;
                     break;
+                case 'isnull':
+                    $field = $this->getField($properties);
+                    $subQuery = $this->setIfNested(['exists' => ['field' => $field]], $field);
+
+                    if ($value) {
+                        $buffer['bool'] = ['must_not' => $subQuery];
+                    } else {
+                        $buffer['bool'] = ['must' => $subQuery];
+                    }
+
+                    return $buffer;
+                    break;
                 case 'in':
                     $field = $this->getField($properties);
                     $subQuery = $this->setIfNested(['terms' => [$field => $value]], $field);
