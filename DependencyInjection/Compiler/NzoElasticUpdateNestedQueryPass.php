@@ -19,6 +19,9 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
 
         $nestedList = [];
         foreach ($indexConfigs as $config) {
+            if (empty($config['types'])) {
+                continue;
+            }
             $properties = current($config['types'])['mapping']['properties'];
             $namespace = current($config['types'])['config']['persistence']['model'];
             foreach ($properties as $field => $property) {
