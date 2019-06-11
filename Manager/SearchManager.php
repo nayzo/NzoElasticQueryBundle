@@ -267,12 +267,16 @@ class SearchManager
         $resultSort = [];
         foreach ($sortList as $sort) {
             $properties = get_object_vars($sort);
-            $field = $this->sortResolver($properties['field']);
-            $resultSort[] = [
-                $field => [
-                    'order' => $properties['order'],
-                ],
-            ];
+            $baseField = $properties['field'];
+            $field = $this->sortResolver($baseField);
+
+            $sort = ['order' => $properties['order']];
+
+            if ($this->isNested($baseField)) {
+                $sort['nested_path'] = explode('.', $baseField)[0];
+            }
+
+            $resultSort[] = [$field => $sort];
         }
 
         return $resultSort;
@@ -286,7 +290,7 @@ class SearchManager
      */
     private function sortResolver($baseField)
     {
-        if (strpos($baseField, '.') !== false) { // nested
+        if ($this->isNested($baseField)) { // nested
             list($nestedEntity, $field) = explode('.', $baseField);
             $fieldType = $this->indexProperties[$nestedEntity]['properties'][$field]['type'];
         } else {
@@ -294,6 +298,15 @@ class SearchManager
         }
 
         return 'text' === $fieldType ? $baseField.'.sort' : $baseField;
+    }
+
+    /**
+     * @param string $baseField
+     * @return bool
+     */
+    private function isNested($baseField)
+    {
+        return strpos($baseField, '.') !== false;
     }
 
     /**
