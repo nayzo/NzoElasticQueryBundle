@@ -89,23 +89,33 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
      * @param string $namespace
      * @param string $field
      * @return string|null
+     * @throws \RuntimeException
      */
     public function resolveAnnotationNestedEntityName(IndexTools $indexTools, $namespace, $field)
     {
-        $entity = new $namespace;
-        $object = new \ReflectionObject($entity);
-        $properties = $object->getProperties();
+        if (class_exists($namespace)) {
+            try {
+                $object = new \ReflectionClass($namespace);
+                $properties = $object->getProperties();
+                foreach ($properties as $property) {
+                    if ($property->getName() === $field) {
+                        $p1 = strpos($property->getDocComment(), 'targetEntity="');
+                        $p2 = strpos($property->getDocComment(), '"', $p1 + 14);
+                        $target = substr($property->getDocComment(), $p1 + 14, $p2 - ($p1 + 14));
+                        if (!empty($target)) {
+                            return $indexTools->getElasticType($target);
+                        }
 
-        foreach ($properties as $property) {
-            if ($property->getName() === $field) {
-                $p1 = strpos($property->getDocComment(), 'targetEntity="');
-                $p2 = strpos($property->getDocComment(), '"', $p1 + 14);
-                $target = substr($property->getDocComment(), $p1 + 14, $p2 - ($p1 + 14));
-                if (!empty($target)) {
-                    return $indexTools->getElasticType($target);
+                        return null;
+                    }
                 }
-
-                return null;
+            } catch (\Exception $e) {
+                throw new \RuntimeException(
+                    sprintf(
+                        'Annotaion nested entity name can\'t be resolved. Exception: %s',
+                        $e->getMessage()
+                    )
+                );
             }
         }
     }
