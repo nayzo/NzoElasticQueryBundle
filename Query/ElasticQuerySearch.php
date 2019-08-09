@@ -11,25 +11,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ElasticQuerySearch
 {
-    /**
-     * @var SearchQueryValidator
-     */
     private $searchQueryValidator;
-    /**
-     * @var SchemaValidator
-     */
     private $schemaValidator;
-    /**
-     * @var SearchManager
-     */
     private $searchManager;
-    /**
-     * @var RepositoryManagerInterface
-     */
     private $repositoryManager;
-    /**
-     * @var array
-     */
     private $options;
 
     public function __construct(
@@ -56,26 +41,26 @@ class ElasticQuerySearch
     public function search($query, $entityNamespace, $page = null, $limit = null)
     {
         // $query must be or become an object
-        if (is_array($query)) {
-            $query = json_decode(json_encode($query));
-        } elseif (is_string($query)) {
-            $query = json_decode($query);
+        if (\is_array($query)) {
+            $query = \json_decode(\json_encode($query));
+        } elseif (\is_string($query)) {
+            $query = \json_decode($query);
         }
 
         if (!empty($query->query)) {
-            if (empty($query->query->search) || is_array($query->query->search)) {
+            if (empty($query->query->search) || \is_array($query->query->search)) {
                 $query->query->search = new \stdClass;
             }
         }
 
+        $this->searchQueryValidator->resetValidationErrors();
         if (!$this->schemaValidator->isJsonSchemaValid($query)) {
             $this->getValidationErrorResponse(
                 $this->searchQueryValidator->getFormattedValidationErrors()
             );
         }
 
-        $this->searchQueryValidator->resetValidationErrors();
-        $this->searchQueryValidator->checkSearchQuery(get_object_vars($query->query->search), $entityNamespace);
+        $this->searchQueryValidator->checkSearchQuery(\get_object_vars($query->query->search), $entityNamespace);
         if (!$this->searchQueryValidator->isSearchQueryValid()) {
             $this->getValidationErrorResponse(
                 $this->searchQueryValidator->getFormattedValidationErrors()
@@ -108,6 +93,6 @@ class ElasticQuerySearch
 
     private function getValidationErrorResponse(array $formattedErrors)
     {
-        throw new BadRequestHttpException(json_encode($formattedErrors), null, Response::HTTP_BAD_REQUEST);
+        throw new BadRequestHttpException(\json_encode($formattedErrors), null, Response::HTTP_BAD_REQUEST);
     }
 }

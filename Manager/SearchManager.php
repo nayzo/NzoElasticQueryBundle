@@ -7,9 +7,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class SearchManager
 {
-    /**
-     * @var IndexTools
-     */
     private $indexTools;
     /**
      * @var array
@@ -49,7 +46,7 @@ class SearchManager
      */
     private function createQuery($searchModel)
     {
-        $properties = get_object_vars($searchModel);
+        $properties = \get_object_vars($searchModel);
 
         if (empty($properties)) {
             return $this->getAll();
@@ -74,20 +71,20 @@ class SearchManager
         foreach ($properties as $property => $value) {
             switch ($property) {
                 case 'and':
-                    if (is_array($value)) {
+                    if (\is_array($value)) {
                         foreach ($value as $elem) {
-                            $elem = get_object_vars($elem);
+                            $elem = \get_object_vars($elem);
                             $result = $this->executeQueryGeneration($elem);
-                            if (array_key_exists('bool', $result)) {
+                            if (\array_key_exists('bool', $result)) {
                                 $nativeQuery['must'][] = $result;
                             } else {
                                 $nativeQuery['must'][] = ['bool' => $result];
                             }
                         }
-                    } elseif (is_object($value)) {
-                        $value = get_object_vars($value);
+                    } elseif (\is_object($value)) {
+                        $value = \get_object_vars($value);
                         $result = $this->executeQueryGeneration($value);
-                        if (array_key_exists('bool', $result)) {
+                        if (\array_key_exists('bool', $result)) {
                             $nativeQuery['must'] = $result;
                         } else {
                             $nativeQuery['must'] = ['bool' => $result];
@@ -95,20 +92,20 @@ class SearchManager
                     }
                     break;
                 case 'or':
-                    if (is_array($value)) {
+                    if (\is_array($value)) {
                         foreach ($value as $elem) {
-                            $elem = get_object_vars($elem);
+                            $elem = \get_object_vars($elem);
                             $result = $this->executeQueryGeneration($elem);
-                            if (array_key_exists('bool', $result)) {
+                            if (\array_key_exists('bool', $result)) {
                                 $nativeQuery['should'][] = $result;
                             } else {
                                 $nativeQuery['should'][] = ['bool' => $result];
                             }
                         }
-                    } elseif (is_object($value)) {
-                        $value = get_object_vars($value);
+                    } elseif (\is_object($value)) {
+                        $value = \get_object_vars($value);
                         $result = $this->executeQueryGeneration($value);
-                        if (array_key_exists('bool', $result)) {
+                        if (\array_key_exists('bool', $result)) {
                             $nativeQuery['should'] = $result;
                         } else {
                             $nativeQuery['should'] = ['bool' => $result];
@@ -131,22 +128,22 @@ class SearchManager
 
             switch ($property) {
                 case 'and':
-                    if (is_array($value)) {
+                    if (\is_array($value)) {
                         $buffer = [];
                         foreach ($value as $elem) {
-                            $elem = get_object_vars($elem);
+                            $elem = \get_object_vars($elem);
                             $result = $this->executeQueryGeneration($elem);
-                            if (array_key_exists('must', $result) && !array_key_exists('bool', $result)) {
+                            if (\array_key_exists('must', $result) && !\array_key_exists('bool', $result)) {
                                 $result = ['bool' => $result];
                             }
                             $buffer['must'][] = $result;
                         }
 
                         return $buffer;
-                    } elseif (is_object($value)) {
-                        $value = get_object_vars($value);
+                    } elseif (\is_object($value)) {
+                        $value = \get_object_vars($value);
                         $result = $this->executeQueryGeneration($value);
-                        if (array_key_exists('must', $result) && !array_key_exists('bool', $result)) {
+                        if (\array_key_exists('must', $result) && !\array_key_exists('bool', $result)) {
                             $result = ['bool' => $result];
                         }
                         $buffer['must'] = $result;
@@ -155,12 +152,12 @@ class SearchManager
                     }
                     break;
                 case 'or':
-                    if (is_array($value)) {
+                    if (\is_array($value)) {
                         $buffer = [];
                         foreach ($value as $elem) {
-                            $elem = get_object_vars($elem);
+                            $elem = \get_object_vars($elem);
                             $result = $this->executeQueryGeneration($elem);
-                            if (array_key_exists('bool', $result)) {
+                            if (\array_key_exists('bool', $result)) {
                                 $buffer['bool']['should'][] = $result;
                             } else {
                                 $buffer['bool']['should'][] = ['bool' => $result];
@@ -168,10 +165,10 @@ class SearchManager
                         }
 
                         return $buffer;
-                    } elseif (is_object($value)) {
-                        $value = get_object_vars($value);
+                    } elseif (\is_object($value)) {
+                        $value = \get_object_vars($value);
                         $result = $this->executeQueryGeneration($value);
-                        if (array_key_exists('bool', $result)) {
+                        if (\array_key_exists('bool', $result)) {
                             $buffer['bool']['should'] = $result;
                         } else {
                             $buffer['bool']['should'] = ['bool' => $result];
@@ -249,8 +246,8 @@ class SearchManager
      */
     private function setIfNested($query, $field)
     {
-        if (strpos($field, '.') !== false) { // nested
-            $nestedEntity = explode('.', $field)[0];
+        if (\strpos($field, '.') !== false) { // nested
+            $nestedEntity = \explode('.', $field)[0];
 
             return ['nested' => ['path' => $nestedEntity, 'query' => $query]];
         }
@@ -266,14 +263,14 @@ class SearchManager
     {
         $resultSort = [];
         foreach ($sortList as $sort) {
-            $properties = get_object_vars($sort);
+            $properties = \get_object_vars($sort);
             $baseField = $properties['field'];
             $field = $this->sortResolver($baseField);
 
             $sort = ['order' => $properties['order']];
 
             if ($this->isNested($baseField)) {
-                $sort['nested_path'] = explode('.', $baseField)[0];
+                $sort['nested_path'] = \explode('.', $baseField)[0];
             }
 
             $resultSort[] = [$field => $sort];
@@ -291,7 +288,7 @@ class SearchManager
     private function sortResolver($baseField)
     {
         if ($this->isNested($baseField)) { // nested
-            list($nestedEntity, $field) = explode('.', $baseField);
+            list($nestedEntity, $field) = \explode('.', $baseField);
             $fieldType = $this->indexProperties[$nestedEntity]['properties'][$field]['type'];
         } else {
             $fieldType = $this->indexProperties[$baseField]['type'];
@@ -306,7 +303,7 @@ class SearchManager
      */
     private function isNested($baseField)
     {
-        return strpos($baseField, '.') !== false;
+        return \strpos($baseField, '.') !== false;
     }
 
     /**
@@ -317,7 +314,7 @@ class SearchManager
     {
         if (empty($elemProperties['field'])) {
             throw new BadRequestHttpException(
-                sprintf('\'field\' property not found in the query:  %s', json_encode($elemProperties))
+                \sprintf('\'field\' property not found in the query:  %s', \json_encode($elemProperties))
             );
         }
 
@@ -336,19 +333,19 @@ class SearchManager
             throw new BadRequestHttpException('Not allowed empty object query body');
         }
 
-        if (count($query) > 2) {
+        if (\count($query) > 2) {
             throw new BadRequestHttpException(
-                sprintf('Only one condition is allowed in each object query body, %s', json_encode($query))
+                \sprintf('Only one condition is allowed in each object query body, %s', \json_encode($query))
             );
         }
 
-        if (count($query) === 1 && array_key_exists('field', $query)) {
+        if (\count($query) === 1 && \array_key_exists('field', $query)) {
             throw new BadRequestHttpException(
-                sprintf('No condition found in the object query body, %s', json_encode($query))
+                \sprintf('No condition found in the object query body, %s', \json_encode($query))
             );
         }
 
-        if (array_key_exists('and', $query) && array_key_exists('or', $query)) {
+        if (\array_key_exists('and', $query) && \array_key_exists('or', $query)) {
             throw new BadRequestHttpException(
                 'Must not have the \'and\' and \'or\' properties in the same object query!'
             );

@@ -13,7 +13,7 @@ class SchemaValidator extends AbstractValidator
      */
     public function isJsonSchemaValid($query, $jsonSchemaFile = 'schema.json')
     {
-        $schema = sprintf('%s/../Json/Validation/%s', realpath(__DIR__), $jsonSchemaFile);
+        $schema = \sprintf('%s/../Json/Validation/%s', \realpath(__DIR__), $jsonSchemaFile);
 
         // Validate
         $validator = new JsonSchema\Validator;
@@ -29,7 +29,7 @@ class SchemaValidator extends AbstractValidator
         if (!empty($this->getValidationErrors())) {
             foreach ($this->getValidationErrors() as $key => $error) {
                 if (
-                    strpos($error['message'], 'Failed to match exactly one schema') !== false
+                    \strpos($error['message'], 'Failed to match exactly one schema') !== false
                     || $this->isInvalidErrorMessage($error['message'], $error['propertyPath'])
                 ) {
                     $this->unsetValidationError($key);
@@ -50,17 +50,17 @@ class SchemaValidator extends AbstractValidator
         $objToArrayMsg = 'Object value found, but an array is required';
         $arrayToObjMsg = 'Array value found, but an object is required';
         if ('query.search.and' === $propertyPath) {
-            return strpos($errorMsg, $arrayToObjMsg) !== false || strpos($errorMsg, $objToArrayMsg) !== false;
+            return \strpos($errorMsg, $arrayToObjMsg) !== false || \strpos($errorMsg, $objToArrayMsg) !== false;
         }
         if ('query.search.and' === $propertyPath) {
-            return strpos($errorMsg, $arrayToObjMsg) !== false || strpos($errorMsg, $objToArrayMsg) !== false;
+            return \strpos($errorMsg, $arrayToObjMsg) !== false || \strpos($errorMsg, $objToArrayMsg) !== false;
         }
 
         if ('query.search.or' === $propertyPath) {
-            return strpos($errorMsg, $arrayToObjMsg) !== false || strpos($errorMsg, $objToArrayMsg) !== false;
+            return \strpos($errorMsg, $arrayToObjMsg) !== false || \strpos($errorMsg, $objToArrayMsg) !== false;
         }
         if ('query.search.or' === $propertyPath) {
-            return strpos($errorMsg, $arrayToObjMsg) !== false || strpos($errorMsg, $objToArrayMsg) !== false;
+            return \strpos($errorMsg, $arrayToObjMsg) !== false || \strpos($errorMsg, $objToArrayMsg) !== false;
         }
 
         return false;

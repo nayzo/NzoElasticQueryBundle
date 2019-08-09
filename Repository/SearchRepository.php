@@ -16,14 +16,14 @@ class SearchRepository extends Repository
     public function executeSearch(array $query, $page, $limit, array $options)
     {
         list($defaultPageNumber, $limitPerPage, $itemsMaxLimit) = $options;
-        if (empty($page) || !is_int($page) || $page < 1) {
+        if (empty($page) || !\is_int($page) || $page < 1) {
             $page = $defaultPageNumber;
         }
 
-        if (empty($limit) || !is_int($limit) || $limit < 1) {
+        if (empty($limit) || !\is_int($limit) || $limit < 1) {
             $limit = $limitPerPage;
         } else {
-            $limit = min($limit, $itemsMaxLimit);
+            $limit = \min($limit, $itemsMaxLimit);
         }
 
         $adapter = $this->finder->createPaginatorAdapter($query)->getResults(($page - 1) * $limit, $limit);
@@ -32,7 +32,7 @@ class SearchRepository extends Repository
         return [
             'items' => $adapter->toArray(),
             'totalItems' => $totalHits,
-            'totalPages' => $totalHits ? ceil($totalHits / $limit) : 1,
+            'totalPages' => $totalHits ? (int)\ceil($totalHits / $limit) : 1,
         ];
     }
 }

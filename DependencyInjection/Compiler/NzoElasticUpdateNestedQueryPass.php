@@ -8,6 +8,7 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Yaml\Yaml;
 
 class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
@@ -22,8 +23,8 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
             if (empty($config['types'])) {
                 continue;
             }
-            $properties = current($config['types'])['mapping']['properties'];
-            $namespace = current($config['types'])['config']['persistence']['model'];
+            $properties = \current($config['types'])['mapping']['properties'];
+            $namespace = \current($config['types'])['config']['persistence']['model'];
             foreach ($properties as $field => $property) {
                 if ('nested' === $property['type']) {
                     $nestedList[] = $this->getNestedEntityName($container, $indexTools, $namespace, $field);
@@ -31,14 +32,16 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
             }
         }
 
-        $nestedList = array_unique(array_filter($nestedList));
+        $nestedList = \array_unique(\array_filter($nestedList));
+
+        $this->persistersLazyLoading($container);
 
         foreach ($nestedList as $type) {
-            $id = sprintf('nzo.elastic_query.fos_elastica_listener.%s', $type);
+            $id = \sprintf('nzo.elastic_query.fos_elastica_listener.%s', $type);
             if (!$container->has($id)) {
 
                 $index = $indexTools->getElasticIndex($type);
-                $elsasticaPersesterId = sprintf('fos_elastica.object_persister.%s.%s', $index, $type);
+                $elsasticaPersesterId = \sprintf('fos_elastica.object_persister.%s.%s', $index, $type);
 
                 if ($container->has($elsasticaPersesterId)) {
                     $definition = new Definition(
@@ -46,18 +49,35 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
                             new Reference($elsasticaPersesterId),
                             new Reference('fos_elastica.indexable'),
                             new Reference('nzo.elastic_query.index_tools'),
+                            new Reference('nzo.elastic_query.locator'),
+                            new Reference('doctrine.orm.default_entity_manager'),
                             ['indexName' => $index, 'typeName' => $type],
                         ]
                     );
 
                     $definition
-                        ->addMethodCall('setContainer', [new Reference('service_container')])
                         ->addTag('doctrine.event_subscriber');
 
                     $container->setDefinition($id, $definition);
                 }
             }
         }
+    }
+
+    private function persistersLazyLoading(ContainerBuilder $container)
+    {
+        $taggedServices = $container->findTaggedServiceIds('fos_elastica.persister');
+
+        $persisters = [];
+        foreach ($taggedServices as $id => $tags) {
+            $ref = \str_replace('fos_elastica.object_persister.', '', $id);
+            $persisters[$ref] = new Reference($id);
+        }
+
+        $container
+            ->register('nzo.elastic_query.locator', ServiceLocator::class)
+            ->setArguments([$persisters])
+            ->addTag('container.service_locator');
     }
 
     /**
@@ -67,18 +87,17 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
      * @param string $field
      * @return string|null
      */
-    public function getNestedEntityName(ContainerBuilder $container, IndexTools $indexTools, $namespace, $field)
+    private function getNestedEntityName(ContainerBuilder $container, IndexTools $indexTools, $namespace, $field)
     {
         if ($container->has('doctrine.orm.default_annotation_metadata_driver')) {
             return $this->resolveAnnotationNestedEntityName($indexTools, $namespace, $field);
-        } else {
-            if ($container->has('doctrine.orm.default_yml_metadata_driver')) {
-                return $this->resolveYmlNestedEntityName($container, $indexTools, $namespace, $field);
-            }
+        }
+        if ($container->has('doctrine.orm.default_yml_metadata_driver')) {
+            return $this->resolveYmlNestedEntityName($container, $indexTools, $namespace, $field);
         }
 
         throw new \InvalidArgumentException(
-            sprintf(
+            \sprintf(
                 'Only "annotation" and "yml" doctrine metadata drivers are supported to handle ElasticQuery mapping'
             )
         );
@@ -91,17 +110,17 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
      * @return string|null
      * @throws \RuntimeException
      */
-    public function resolveAnnotationNestedEntityName(IndexTools $indexTools, $namespace, $field)
+    private function resolveAnnotationNestedEntityName(IndexTools $indexTools, $namespace, $field)
     {
-        if (class_exists($namespace)) {
+        if (\class_exists($namespace)) {
             try {
                 $object = new \ReflectionClass($namespace);
                 $properties = $object->getProperties();
                 foreach ($properties as $property) {
                     if ($property->getName() === $field) {
-                        $p1 = strpos($property->getDocComment(), 'targetEntity="');
-                        $p2 = strpos($property->getDocComment(), '"', $p1 + 14);
-                        $target = substr($property->getDocComment(), $p1 + 14, $p2 - ($p1 + 14));
+                        $p1 = \strpos($property->getDocComment(), 'targetEntity="');
+                        $p2 = \strpos($property->getDocComment(), '"', $p1 + 14);
+                        $target = \substr($property->getDocComment(), $p1 + 14, $p2 - ($p1 + 14));
                         if (!empty($target)) {
                             return $indexTools->getElasticType($target);
                         }
@@ -111,7 +130,7 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
                 }
             } catch (\Exception $e) {
                 throw new \RuntimeException(
-                    sprintf(
+                    \sprintf(
                         'Annotaion nested entity name can\'t be resolved. Exception: %s',
                         $e->getMessage()
                     )
@@ -127,22 +146,22 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
      * @param string $field
      * @return string|null
      */
-    public function resolveYmlNestedEntityName(ContainerBuilder $container, IndexTools $indexTools, $namespace, $field)
+    private function resolveYmlNestedEntityName(ContainerBuilder $container, IndexTools $indexTools, $namespace, $field)
     {
         $ymlDriver = $container->getDefinition('doctrine.orm.default_yml_metadata_driver');
         $argument = $ymlDriver->getArgument(0);
-        $dir = array_keys($argument)[0];
-        $ormFile = sprintf('%s/%s.orm.yml', $dir, ucfirst($indexTools->getElasticType($namespace)));
+        $dir = \array_keys($argument)[0];
+        $ormFile = \sprintf('%s/%s.orm.yml', $dir, \ucfirst($indexTools->getElasticType($namespace)));
 
-        if (!file_exists($ormFile)) {
+        if (!\file_exists($ormFile)) {
             throw new \InvalidArgumentException(
-                sprintf('The doctrine yml mapping file "%s" not found for the entity "%s"', $ormFile, $namespace)
+                \sprintf('The doctrine yml mapping file "%s" not found for the entity "%s"', $ormFile, $namespace)
             );
         }
         $entityMapping = Yaml::parseFile($ormFile);
-        $attributes = current($entityMapping);
+        $attributes = \current($entityMapping);
         foreach ($attributes as $name => $attribute) {
-            if (in_array($name, ['manyToOne', 'oneToMany', 'manyToMany'])) {
+            if (\in_array($name, ['manyToOne', 'oneToMany', 'manyToMany'])) {
                 foreach ($attribute as $key => $item) {
                     if ($key === $field) {
                         return $indexTools->getElasticType($item['targetEntity']);

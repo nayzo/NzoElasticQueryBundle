@@ -6,9 +6,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class SearchQueryValidator extends AbstractValidator
 {
-    /**
-     * @var EntityManagerInterface
-     */
     private $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager)
@@ -34,16 +31,16 @@ class SearchQueryValidator extends AbstractValidator
     {
         foreach ($query as $key => $value) {
 
-            if (in_array($key, ['or', 'and'], true)) {
-                if (is_array($value)) {
+            if (\in_array($key, ['or', 'and'], true)) {
+                if (\is_array($value)) {
                     $this->checkSearchQuery($value, $entityNamespace);
                 } else {
-                    $this->checkSearchQuery(get_object_vars($value), $entityNamespace);
+                    $this->checkSearchQuery(\get_object_vars($value), $entityNamespace);
                 }
             }
 
-            if (is_object($value)) {
-                $this->checkSearchQuery(get_object_vars($value), $entityNamespace);
+            if (\is_object($value)) {
+                $this->checkSearchQuery(\get_object_vars($value), $entityNamespace);
             }
 
             $this->checkFieldExist($key, $value, $entityNamespace);
@@ -60,13 +57,13 @@ class SearchQueryValidator extends AbstractValidator
     private function checkFieldExist($key, $value, $entityNamespace)
     {
         if ('field' === $key) {
-            if (strpos($value, '.') !== false) {
-                $entityFieldName = explode('.', $value)[0];
-                $fieldName = explode('.', $value)[1];
+            if (\strpos($value, '.') !== false) {
+                $entityFieldName = \explode('.', $value)[0];
+                $fieldName = \explode('.', $value)[1];
                 $metadata = $this->entityManager->getClassMetadata($entityNamespace);
-                if (!array_key_exists($entityFieldName, $metadata->associationMappings)) {
+                if (!\array_key_exists($entityFieldName, $metadata->associationMappings)) {
                     $this->addValidationError(
-                        sprintf(
+                        \sprintf(
                             'No association exist with the nested property \'%s\', found in \'%s\'',
                             $entityFieldName,
                             $value
@@ -81,8 +78,8 @@ class SearchQueryValidator extends AbstractValidator
                 $fieldName = $value;
             }
 
-            if (!in_array($fieldName, $metadata->getFieldNames())) {
-                $this->addValidationError(sprintf('Property \'%s\' does not exist', $value));
+            if (!\in_array($fieldName, $metadata->getFieldNames())) {
+                $this->addValidationError(\sprintf('Property \'%s\' does not exist', $value));
             }
         }
     }
@@ -94,18 +91,18 @@ class SearchQueryValidator extends AbstractValidator
     private function checkRange($key, $value)
     {
         if ('range' === $key) {
-            if (gettype($value[0]) !== gettype($value[1])) {
+            if (\gettype($value[0]) !== \gettype($value[1])) {
                 $this->addValidationError(
-                    sprintf(
+                    \sprintf(
                         'range values [%s, %s] must have the same type',
                         $value[0],
                         $value[1]
                     )
                 );
-            } elseif (is_string($value[0])) { // date
+            } elseif (\is_string($value[0])) { // date
                 foreach ($value as $item) {
                     if (!$this->isDateValid($item)) {
-                        $this->addValidationError(sprintf('range value [%s] is not a valid date', $item));
+                        $this->addValidationError(\sprintf('range value [%s] is not a valid date', $item));
                     }
                 }
             }
@@ -118,10 +115,10 @@ class SearchQueryValidator extends AbstractValidator
      */
     private function checkGtLtFields($key, $value)
     {
-        if (in_array($key, ['gt', 'gte', 'lt', 'lte'], true)) {
-            if (is_string($value)) { // date
+        if (\in_array($key, ['gt', 'gte', 'lt', 'lte'], true)) {
+            if (\is_string($value)) { // date
                 if (!$this->isDateValid($value)) {
-                    $this->addValidationError(sprintf('%s value [%s] is not a valid date', $key, $value));
+                    $this->addValidationError(\sprintf('%s value [%s] is not a valid date', $key, $value));
                 }
             }
         }

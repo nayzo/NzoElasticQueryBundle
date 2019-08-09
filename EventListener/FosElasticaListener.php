@@ -4,87 +4,53 @@ namespace Nzo\ElasticQueryBundle\EventListener;
 
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\LazyCriteriaCollection;
 use Doctrine\ORM\PersistentCollection;
 use Nzo\ElasticQueryBundle\Service\IndexTools;
 use FOS\ElasticaBundle\Persister\ObjectPersisterInterface;
 use FOS\ElasticaBundle\Provider\IndexableInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Inflector\Inflector;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 class FosElasticaListener implements EventSubscriber
 {
-    /**
-     * @var ObjectPersisterInterface
-     */
-    private $objectPersister;
-    /**
-     * @var ContainerInterface
-     */
-    private $container;
-    /**
-     * @var IndexableInterface
-     */
-    private $indexable;
-    /**
-     * Configuration for the listener.
-     *
-     * @var array
-     */
-    private $config;
-    /**
-     * Objects scheduled for insertion.
-     *
-     * @var array
-     */
-    private $scheduledForInsertion = [];
-    /**
-     * Objects scheduled to be updated or removed.
-     *
-     * @var array
-     */
-    private $scheduledForUpdate = [];
-    /**
-     * IDs of objects scheduled for removal.
-     *
-     * @var array
-     */
-    private $scheduledForDeletion = [];
-    /**
-     * PropertyAccessor instance.
-     *
-     * @var PropertyAccessorInterface
-     */
-    private $propertyAccessor;
+    const ACTION_INSERT = 'insert';
+    const ACTION_UPDATE = 'update';
+    const ACTION_REMOVE = 'remove';
 
-    /**
-     * @var IndexTools
-     */
+    private $objectPersister;
+    private $indexable;
+    private $config;
+    private $scheduledForInsertion = [];
+    private $scheduledForUpdate = [];
+    private $scheduledForDeletion = [];
+    private $propertyAccessor;
     private $indexTools;
+    private $serviceLocator;
+    private $entityManager;
 
     public function __construct(
         ObjectPersisterInterface $objectPersister,
         IndexableInterface $indexable,
         IndexTools $indexTools,
+        ServiceLocator $serviceLocator,
+        EntityManagerInterface $entityManager,
         array $config
     ) {
         $this->objectPersister = $objectPersister;
         $this->indexable = $indexable;
         $this->indexTools = $indexTools;
+        $this->serviceLocator = $serviceLocator;
+        $this->entityManager = $entityManager;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $this->config = array_merge(
+        $this->config = \array_merge(
             array(
                 'identifier' => 'id',
             ),
             $config
         );
-    }
-
-    public function setContainer(ContainerInterface $container)
-    {
-        $this->container = $container;
     }
 
     public function getSubscribedEvents()
@@ -110,7 +76,7 @@ class FosElasticaListener implements EventSubscriber
         if ($this->objectPersister->handlesObject($entity) && $this->isObjectIndexable($entity)) {
             $this->scheduledForInsertion[] = $entity;
             // Update related document
-            $this->updateRelations($entity, 'insert');
+            $this->updateRelations($entity, self::ACTION_INSERT);
         }
     }
 
@@ -158,7 +124,7 @@ class FosElasticaListener implements EventSubscriber
 
         if ($this->objectPersister->handlesObject($entity)) {
             // Update related document
-            $this->updateRelations($entity, 'remove');
+            $this->updateRelations($entity, self::ACTION_REMOVE);
         }
     }
 
@@ -177,26 +143,26 @@ class FosElasticaListener implements EventSubscriber
      * @param Object $entity
      * @param string $stask
      */
-    private function updateRelations($entity, $task = 'update')
+    private function updateRelations($entity, $task = self::ACTION_UPDATE)
     {
         // Get all association of the current entity
-        $entityAssociations = $this->container->get('doctrine')->getManager()->getMetadataFactory()->getMetadataFor(
-            get_class($entity)
-        )->getAssociationMappings();
+        $entityAssociations = $this->entityManager->getMetadataFactory()
+            ->getMetadataFor(\get_class($entity))
+            ->getAssociationMappings();
 
         foreach ($entityAssociations as $asso) {
             $elasticType = $this->indexTools->getElasticType($asso['targetEntity']);
             $elasticIndex = $this->indexTools->getElasticIndex($elasticType);
-            $objectPersisterName = sprintf('fos_elastica.object_persister.%s.%s', $elasticIndex, $elasticType);
-            if ($this->container->has($objectPersisterName)) {
-                $objectPersisterRelation = $this->container->get($objectPersisterName);
-                $getAssoObject = 'get'.ucfirst($asso['fieldName']);
-                $relationObjects = $entity->$getAssoObject();
+            $persisterReference = \sprintf('%s.%s', $elasticIndex, $elasticType);
+            if ($this->serviceLocator->has($persisterReference)) {
+                $objectPersisterRelation = $this->serviceLocator->get($persisterReference);
+                $relationObjects = $this->propertyAccessor->getValue($entity, $asso['fieldName']);
+
                 $scheduledForUpdate = [];
                 // Collection of Objects (ManyToOne, ManyToMany)
                 if ($relationObjects instanceof PersistentCollection || $relationObjects instanceof LazyCriteriaCollection) {
                     if ($relationObjects->count() > 0) {
-                        foreach ($relationObjects as $key => $object) {
+                        foreach ($relationObjects as $object) {
                             if ($objectPersisterRelation->handlesObject($object) && $this->isObjectIndexable($object)) {
                                 $this->handleInsert($task, $asso, $entity, $object);
                                 $scheduledForUpdate[] = $object;
@@ -219,19 +185,19 @@ class FosElasticaListener implements EventSubscriber
     }
 
     /**
-     * @param ObjectPersisterInterface|Object $objectPersisterRelation
+     * @param ObjectPersisterInterface $objectPersisterRelation
      * @param array $scheduledForUpdate
      * @param string $task
      */
     private function handleReplaceMany(
         ObjectPersisterInterface $objectPersisterRelation,
         array $scheduledForUpdate,
-        string $task
+        $task
     ) {
-        if ('remove' === $task) {
+        if (self::ACTION_REMOVE === $task) {
             $scheduledForRemove = [];
             foreach ($scheduledForUpdate as $object) {
-                if (method_exists($object, 'getId') && $object->getId() !== null) {
+                if (\method_exists($object, 'getId') && $object->getId() !== null) {
                     $scheduledForRemove[] = $object;
                 }
             }
@@ -249,43 +215,43 @@ class FosElasticaListener implements EventSubscriber
      * @param Object $entity
      * @param Object $object
      */
-    private function handleInsert(string $task, array $asso, $entity, $object)
+    private function handleInsert($task, array $asso, $entity, $object)
     {
-        if ('insert' === $task) {
+        if (self::ACTION_INSERT === $task) {
 
             $ressource = $asso['inversedBy'] ?? $asso['mappedBy'] ?? null;
 
             if (empty($ressource)) {
                 throw new \InvalidArgumentException(
-                    sprintf(
+                    \sprintf(
                         'The doctrine attribute "inversedBy" or "mappedBy" must be set in the entity "%s" for the association with "%s"',
-                        get_class($entity),
-                        get_class($object)
+                        \get_class($entity),
+                        \get_class($object)
                     )
                 );
             }
 
             $ressource = Inflector::singularize($ressource);
-            $setAssoObject = 'add'.ucfirst($ressource);
-            if (method_exists($object, $setAssoObject)) {
+            $setAssoObject = 'add'.\ucfirst($ressource);
+            if (\method_exists($object, $setAssoObject)) {
                 $object->$setAssoObject($entity);
 
                 return;
             }
 
-            $setAssoObject = 'set'.ucfirst($ressource);
-            if (method_exists($object, $setAssoObject)) {
+            $setAssoObject = 'set'.\ucfirst($ressource);
+            if (\method_exists($object, $setAssoObject)) {
                 $object->$setAssoObject($entity);
 
                 return;
             }
 
             throw new \InvalidArgumentException(
-                sprintf(
+                \sprintf(
                     'One of the methods "%s" or "%s" must be implemented in the entity "%s"',
-                    'set'.ucfirst($ressource),
-                    'add'.ucfirst($ressource),
-                    get_class($object)
+                    'set'.\ucfirst($ressource),
+                    'add'.\ucfirst($ressource),
+                    \get_class($object)
                 )
             );
         }
@@ -297,15 +263,15 @@ class FosElasticaListener implements EventSubscriber
      */
     private function flushScheduled()
     {
-        if (count($this->scheduledForInsertion)) {
+        if (\count($this->scheduledForInsertion)) {
             $this->objectPersister->insertMany($this->scheduledForInsertion);
             $this->scheduledForInsertion = [];
         }
-        if (count($this->scheduledForUpdate)) {
-            $this->handleReplaceMany($this->objectPersister, $this->scheduledForUpdate, 'update');
+        if (\count($this->scheduledForUpdate)) {
+            $this->handleReplaceMany($this->objectPersister, $this->scheduledForUpdate, self::ACTION_UPDATE);
             $this->scheduledForUpdate = [];
         }
-        if (count($this->scheduledForDeletion)) {
+        if (\count($this->scheduledForDeletion)) {
             $this->objectPersister->deleteManyByIdentifiers($this->scheduledForDeletion);
             $this->scheduledForDeletion = [];
         }

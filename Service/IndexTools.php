@@ -4,13 +4,7 @@ namespace Nzo\ElasticQueryBundle\Service;
 
 class IndexTools
 {
-    /**
-     * @var string
-     */
     private $appElasticIndexConfigs;
-    /**
-     * @var string
-     */
     private $elasticIndexPrefix;
 
     /**
@@ -29,22 +23,22 @@ class IndexTools
      * @param string $entityNamespace
      * @return string
      */
-    public function getElasticType(string $entityNamespace)
+    public function getElasticType($entityNamespace)
     {
-        if (strpos($entityNamespace, '\\') === false) {
-            return lcfirst($entityNamespace);
+        if (\strpos($entityNamespace, '\\') === false) {
+            return \lcfirst($entityNamespace);
         }
 
-        return lcfirst(substr($entityNamespace, strrpos($entityNamespace, '\\') + 1));
+        return \lcfirst(\substr($entityNamespace, \strrpos($entityNamespace, '\\') + 1));
     }
 
     /**
      * @param string $elasticType
      * @return string
      */
-    public function getElasticIndex(string $elasticType)
+    public function getElasticIndex($elasticType)
     {
-        $index = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $elasticType));
+        $index = \strtolower(\preg_replace('/(?<!^)[A-Z]/', '_$0', $elasticType));
 
         return empty($this->elasticIndexPrefix) ? $index : $this->elasticIndexPrefix.'.'.$index;
     }
