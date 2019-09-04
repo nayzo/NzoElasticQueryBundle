@@ -13,10 +13,11 @@ services:
         arguments:
             - '@nzo.elastic_query.index_tools'
 
-    nzo.elastic_query.search_query_validator:
-        class: Nzo\ElasticQueryBundle\Validator\SearchQueryValidator
+    nzo.elastic_query.query_validator:
+        class: Nzo\ElasticQueryBundle\Validator\QueryValidator
         arguments:
             - '@doctrine.orm.default_entity_manager'
+            - '@nzo.elastic_query.index_tools'
 
     nzo.elastic_query.schema_validator:
         class: Nzo\ElasticQueryBundle\Validator\SchemaValidator
@@ -24,7 +25,7 @@ services:
     nzo.elastic_query.search:
         class: Nzo\ElasticQueryBundle\Query\ElasticQuerySearch
         arguments:
-            - '@nzo.elastic_query.search_query_validator'
+            - '@nzo.elastic_query.query_validator'
             - '@nzo.elastic_query.schema_validator'
             - '@nzo.elastic_query.search_manager'
             - '@fos_elastica.manager.orm'

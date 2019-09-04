@@ -32,7 +32,7 @@ abstract class AbstractValidator
     public function addValidationError($errorMsg, $propertyPath = null)
     {
         static::$validationErrors[] = [
-            'propertyPath' => $propertyPath,
+            'propertyPath' => ('' === $propertyPath) ? null : $propertyPath,
             'message' => $errorMsg,
         ];
     }

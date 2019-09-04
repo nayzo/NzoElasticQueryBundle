@@ -3,14 +3,17 @@
 namespace Nzo\ElasticQueryBundle\Validator;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Nzo\ElasticQueryBundle\Service\IndexTools;
 
-class SearchQueryValidator extends AbstractValidator
+class QueryValidator extends AbstractValidator
 {
     private $entityManager;
+    private $indexTools;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, IndexTools $indexTools)
     {
         $this->entityManager = $entityManager;
+        $this->indexTools = $indexTools;
     }
 
     /**
@@ -24,28 +27,39 @@ class SearchQueryValidator extends AbstractValidator
     /**
      * @param array $query
      * @param string $entityNamespace
-     * @param string $jsonSchemaFile
-     * @return bool
      */
     public function checkSearchQuery(array $query, $entityNamespace)
     {
         foreach ($query as $key => $value) {
-
             if (\in_array($key, ['or', 'and'], true)) {
                 if (\is_array($value)) {
                     $this->checkSearchQuery($value, $entityNamespace);
                 } else {
                     $this->checkSearchQuery(\get_object_vars($value), $entityNamespace);
                 }
-            }
+            } else {
+                if (\is_object($value)) {
+                    $this->checkSearchQuery(\get_object_vars($value), $entityNamespace);
+                }
 
-            if (\is_object($value)) {
-                $this->checkSearchQuery(\get_object_vars($value), $entityNamespace);
+                $this->checkFieldExist($key, $value, $entityNamespace);
+                $this->checkRange($key, $value);
+                $this->checkGtLtFields($key, $value);
             }
+        }
+    }
 
-            $this->checkFieldExist($key, $value, $entityNamespace);
-            $this->checkRange($key, $value);
-            $this->checkGtLtFields($key, $value);
+    /**
+     * @param array $query
+     * @param string $entityNamespace
+     */
+    public function checkSortQuery(array $query, $entityNamespace)
+    {
+        foreach ($query as $queryValue) {
+            $sort = \get_object_vars($queryValue);
+            foreach ($sort as $key => $value) {
+                $this->checkFieldExist($key, $value, $entityNamespace, true);
+            }
         }
     }
 
@@ -53,8 +67,9 @@ class SearchQueryValidator extends AbstractValidator
      * @param string $key
      * @param string $value
      * @param string $entityNamespace
+     * @param bool $isSort
      */
-    private function checkFieldExist($key, $value, $entityNamespace)
+    private function checkFieldExist($key, $value, $entityNamespace, $isSort = false)
     {
         if ('field' === $key) {
             if (\strpos($value, '.') !== false) {
@@ -64,22 +79,29 @@ class SearchQueryValidator extends AbstractValidator
                 if (!\array_key_exists($entityFieldName, $metadata->associationMappings)) {
                     $this->addValidationError(
                         \sprintf(
-                            'No association exist with the nested property \'%s\', found in \'%s\'',
-                            $entityFieldName,
-                            $value
-                        )
+                            '%sNo association exist for the nested property \'%s\'',
+                            $isSort ? '[Sort] ' : '',
+                            $entityFieldName
+                        ),
+                        $value
                     );
+
+                    return;
                 } else {
-                    $entityFieldFQCN = $metadata->associationMappings[$entityFieldName]['targetEntity'];
-                    $metadata = $this->entityManager->getClassMetadata($entityFieldFQCN);
+                    $indexProperties = $this->indexTools->getIndexMappingProperties(
+                        $entityNamespace
+                    )[$entityFieldName]['properties'];
                 }
             } else {
-                $metadata = $this->entityManager->getClassMetadata($entityNamespace);
+                $indexProperties = $this->indexTools->getIndexMappingProperties($entityNamespace);
                 $fieldName = $value;
             }
 
-            if (!\in_array($fieldName, $metadata->getFieldNames())) {
-                $this->addValidationError(\sprintf('Property \'%s\' does not exist', $value));
+            if (!\array_key_exists($fieldName, $indexProperties)) {
+                $this->addValidationError(
+                    \sprintf('%sProperty \'%s\' does not exist', $isSort ? '[Sort] ' : '', $fieldName),
+                    $value
+                );
             }
         }
     }

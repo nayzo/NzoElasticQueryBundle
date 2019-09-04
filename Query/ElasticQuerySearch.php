@@ -5,26 +5,26 @@ namespace Nzo\ElasticQueryBundle\Query;
 use FOS\ElasticaBundle\Manager\RepositoryManagerInterface;
 use Nzo\ElasticQueryBundle\Manager\SearchManager;
 use Nzo\ElasticQueryBundle\Validator\SchemaValidator;
-use Nzo\ElasticQueryBundle\Validator\SearchQueryValidator;
+use Nzo\ElasticQueryBundle\Validator\QueryValidator;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\Response;
 
 class ElasticQuerySearch
 {
-    private $searchQueryValidator;
+    private $queryValidator;
     private $schemaValidator;
     private $searchManager;
     private $repositoryManager;
     private $options;
 
     public function __construct(
-        SearchQueryValidator $searchQueryValidator,
+        QueryValidator $queryValidator,
         SchemaValidator $schemaValidator,
         SearchManager $searchManager,
         RepositoryManagerInterface $repositoryManager,
         array $options
     ) {
-        $this->searchQueryValidator = $searchQueryValidator;
+        $this->queryValidator = $queryValidator;
         $this->schemaValidator = $schemaValidator;
         $this->searchManager = $searchManager;
         $this->repositoryManager = $repositoryManager;
@@ -53,17 +53,21 @@ class ElasticQuerySearch
             }
         }
 
-        $this->searchQueryValidator->resetValidationErrors();
+        $this->queryValidator->resetValidationErrors();
         if (!$this->schemaValidator->isJsonSchemaValid($query)) {
             $this->getValidationErrorResponse(
-                $this->searchQueryValidator->getFormattedValidationErrors()
+                $this->queryValidator->getFormattedValidationErrors()
             );
         }
 
-        $this->searchQueryValidator->checkSearchQuery(\get_object_vars($query->query->search), $entityNamespace);
-        if (!$this->searchQueryValidator->isSearchQueryValid()) {
+        $this->queryValidator->checkSearchQuery(\get_object_vars($query->query->search), $entityNamespace);
+        if (!empty($query->query->sort)) {
+            $this->queryValidator->checkSortQuery($query->query->sort, $entityNamespace);
+        }
+
+        if (!$this->queryValidator->isSearchQueryValid()) {
             $this->getValidationErrorResponse(
-                $this->searchQueryValidator->getFormattedValidationErrors()
+                $this->queryValidator->getFormattedValidationErrors()
             );
         }
 
@@ -77,10 +81,15 @@ class ElasticQuerySearch
                 $this->options
             );
         } catch (\Exception $exception) {
+            $message = $exception->getMessage();
+            if (stripos($message, 'failed to create query') !== false) {
+                $message = 'Failed to create query';
+            }
+
             $this->getValidationErrorResponse(
                 [
                     'title' => 'Validation Failed',
-                    'detail' => $exception->getMessage(),
+                    'detail' => $message,
                 ]
             );
         }
@@ -88,7 +97,7 @@ class ElasticQuerySearch
 
     public function resetValidationErrors()
     {
-        $this->searchQueryValidator->resetValidationErrors();
+        $this->queryValidator->resetValidationErrors();
     }
 
     private function getValidationErrorResponse(array $formattedErrors)
