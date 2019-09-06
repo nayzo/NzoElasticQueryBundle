@@ -21,6 +21,8 @@
         "symfony/framework-bundle": "^3.4|^4.0",
         "symfony/http-kernel": "^3.4|^4.0",
         "symfony/http-foundation": "^3.4|^4.0",
+        "symfony/options-resolver": "^3.4|^4.0",
+        "symfony/security-core": "^3.4|^4.0",
         "symfony/serializer": "^3.4|^4.0"
     },
     "minimum-stability": "stable"

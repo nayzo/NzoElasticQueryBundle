@@ -22,12 +22,18 @@ services:
     nzo.elastic_query.schema_validator:
         class: Nzo\ElasticQueryBundle\Validator\SchemaValidator
 
+    nzo.elastic_query.search_access_checker:
+    class: Nzo\ElasticQueryBundle\Security\SearchAccessChecker
+    arguments:
+        - '@security.authorization_checker'
+
     nzo.elastic_query.search:
         class: Nzo\ElasticQueryBundle\Query\ElasticQuerySearch
         arguments:
             - '@nzo.elastic_query.query_validator'
             - '@nzo.elastic_query.schema_validator'
             - '@nzo.elastic_query.search_manager'
+            - '@nzo.elastic_query.search_access_checker'
             - '@fos_elastica.manager.orm'
             -
                 - '%nzo_elastic_index.default_page_number%'

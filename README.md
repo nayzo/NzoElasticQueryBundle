@@ -82,6 +82,15 @@ class MyClass
         // $entityNamespace === 'App\Entity\FooBar'
         
         return $this->elasticQuerySearch->search($query, $entityNamespace, $page, $limit);
+        
+        // check access permission on the search
+        return $this->elasticQuerySearch->search(
+            $query,
+            $entityNamespace,
+            $page,
+            $limit,
+            ['roles' => ['ROLE_SEARCH', 'ROLE_ADMIN'], 'message' => 'Search not authorized'] // 'message' is optional
+        );
     }
 }
 ```

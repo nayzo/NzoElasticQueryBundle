@@ -2,6 +2,7 @@
 
 namespace Nzo\ElasticQueryBundle\Query;
 
+use Nzo\ElasticQueryBundle\Security\SearchAccessChecker;
 use FOS\ElasticaBundle\Manager\RepositoryManagerInterface;
 use Nzo\ElasticQueryBundle\Manager\SearchManager;
 use Nzo\ElasticQueryBundle\Validator\SchemaValidator;
@@ -14,6 +15,7 @@ class ElasticQuerySearch
     private $queryValidator;
     private $schemaValidator;
     private $searchManager;
+    private $searchAccessChecker;
     private $repositoryManager;
     private $options;
 
@@ -21,12 +23,14 @@ class ElasticQuerySearch
         QueryValidator $queryValidator,
         SchemaValidator $schemaValidator,
         SearchManager $searchManager,
+        SearchAccessChecker $searchAccessChecker,
         RepositoryManagerInterface $repositoryManager,
         array $options
     ) {
         $this->queryValidator = $queryValidator;
         $this->schemaValidator = $schemaValidator;
         $this->searchManager = $searchManager;
+        $this->searchAccessChecker = $searchAccessChecker;
         $this->repositoryManager = $repositoryManager;
         $this->options = $options;
     }
@@ -36,10 +40,13 @@ class ElasticQuerySearch
      * @param string $entityNamespace The FQCN (fully qualified class name) of the entity to execute the search on.
      * @param null|int $page
      * @param null|int $limit
+     * @param array $roles At least one of the "roles" must be valid in order to execute the search. The exception "message" is optional: ['roles' => ['..'], 'message' => '..']
      * @return array
      */
-    public function search($query, $entityNamespace, $page = null, $limit = null)
+    public function search($query, $entityNamespace, $page = null, $limit = null, array $roles = [])
     {
+        $this->searchAccessChecker->handleSearchAccess($roles);
+
         // $query must be or become an object
         if (\is_array($query)) {
             $query = \json_decode(\json_encode($query));
