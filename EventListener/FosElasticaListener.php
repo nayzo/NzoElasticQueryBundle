@@ -4,7 +4,7 @@ namespace Nzo\ElasticQueryBundle\EventListener;
 
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\Common\EventSubscriber;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\LazyCriteriaCollection;
 use Doctrine\ORM\PersistentCollection;
 use Nzo\ElasticQueryBundle\Service\IndexTools;
@@ -29,21 +29,18 @@ class FosElasticaListener implements EventSubscriber
     private $propertyAccessor;
     private $indexTools;
     private $serviceLocator;
-    private $entityManager;
 
     public function __construct(
         ObjectPersisterInterface $objectPersister,
         IndexableInterface $indexable,
         IndexTools $indexTools,
         ServiceLocator $serviceLocator,
-        EntityManagerInterface $entityManager,
         array $config
     ) {
         $this->objectPersister = $objectPersister;
         $this->indexable = $indexable;
         $this->indexTools = $indexTools;
         $this->serviceLocator = $serviceLocator;
-        $this->entityManager = $entityManager;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->config = \array_merge(
             array(
@@ -76,7 +73,7 @@ class FosElasticaListener implements EventSubscriber
         if ($this->objectPersister->handlesObject($entity) && $this->isObjectIndexable($entity)) {
             $this->scheduledForInsertion[] = $entity;
             // Update related document
-            $this->updateRelations($entity, self::ACTION_INSERT);
+            $this->updateRelations($eventArgs->getObjectManager(), $entity, self::ACTION_INSERT);
         }
     }
 
@@ -92,7 +89,7 @@ class FosElasticaListener implements EventSubscriber
             if ($this->isObjectIndexable($entity)) {
                 $this->scheduledForUpdate[] = $entity;
                 // Update related document
-                $this->updateRelations($entity);
+                $this->updateRelations($eventArgs->getObjectManager(), $entity);
             } else {
                 // Delete if no longer indexable
                 $this->scheduleForDeletion($entity);
@@ -124,7 +121,7 @@ class FosElasticaListener implements EventSubscriber
 
         if ($this->objectPersister->handlesObject($entity)) {
             // Update related document
-            $this->updateRelations($entity, self::ACTION_REMOVE);
+            $this->updateRelations($eventArgs->getObjectManager(), $entity, self::ACTION_REMOVE);
         }
     }
 
@@ -140,13 +137,14 @@ class FosElasticaListener implements EventSubscriber
     /**
      * Update all object's relation managed by Doctrine
      *
+     * @param ObjectManager $objectManager
      * @param Object $entity
      * @param string $stask
      */
-    private function updateRelations($entity, $task = self::ACTION_UPDATE)
+    private function updateRelations($objectManager, $entity, $task = self::ACTION_UPDATE)
     {
         // Get all association of the current entity
-        $entityAssociations = $this->entityManager->getMetadataFactory()
+        $entityAssociations = $objectManager->getMetadataFactory()
             ->getMetadataFor(\get_class($entity))
             ->getAssociationMappings();
 

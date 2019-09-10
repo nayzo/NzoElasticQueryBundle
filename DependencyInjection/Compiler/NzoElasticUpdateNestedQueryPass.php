@@ -50,7 +50,6 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
                             new Reference('fos_elastica.indexable'),
                             new Reference('nzo.elastic_query.index_tools'),
                             new Reference('nzo.elastic_query.locator'),
-                            new Reference('doctrine.orm.default_entity_manager'),
                             ['indexName' => $index, 'typeName' => $type],
                         ]
                     );
