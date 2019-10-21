@@ -224,7 +224,7 @@ class FosElasticaListener implements EventSubscriber
             }
 
             $ressource = !empty($asso['inversedBy']) ? $asso['inversedBy'] : null;
-            $ressource = (null === $ressource && !empty($asso['mappedBy'])) ? $asso['mappedBy'] : null;
+            $ressource = (null === $ressource && !empty($asso['mappedBy'])) ? $asso['mappedBy'] : $ressource;
 
             if (empty($ressource)) {
                 throw new \InvalidArgumentException(
