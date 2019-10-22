@@ -6,7 +6,6 @@ use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\LazyCriteriaCollection;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\PersistentCollection;
 use Nzo\ElasticQueryBundle\Service\IndexTools;
 use FOS\ElasticaBundle\Persister\ObjectPersisterInterface;
@@ -217,12 +216,6 @@ class FosElasticaListener implements EventSubscriber
     private function handleInsert($task, array $asso, $entity, $object)
     {
         if (self::ACTION_INSERT === $task) {
-
-            //  Authorize oneToOne unidirectional mapping
-            if ($asso['type'] === ClassMetadataInfo::ONE_TO_ONE && null === $asso['mappedBy']) {
-                return;
-            }
-
             $ressource = !empty($asso['inversedBy']) ? $asso['inversedBy'] : null;
             $ressource = (null === $ressource && !empty($asso['mappedBy'])) ? $asso['mappedBy'] : $ressource;
 
