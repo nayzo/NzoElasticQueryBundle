@@ -2,11 +2,10 @@
 
 namespace Nzo\ElasticQueryBundle\EventListener;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Persistence\ObjectManager;
-use Doctrine\ORM\LazyCriteriaCollection;
-use Doctrine\ORM\PersistentCollection;
 use Nzo\ElasticQueryBundle\Service\IndexTools;
 use FOS\ElasticaBundle\Persister\ObjectPersisterInterface;
 use FOS\ElasticaBundle\Provider\IndexableInterface;
@@ -155,27 +154,30 @@ class FosElasticaListener implements EventSubscriber
             if ($this->serviceLocator->has($persisterReference)) {
                 $objectPersisterRelation = $this->serviceLocator->get($persisterReference);
                 $relationObjects = $this->propertyAccessor->getValue($entity, $asso['fieldName']);
-
-                $scheduledForUpdate = [];
-                // Collection of Objects (ManyToOne, ManyToMany)
-                if ($relationObjects instanceof PersistentCollection || $relationObjects instanceof LazyCriteriaCollection) {
-                    if ($relationObjects->count() > 0) {
-                        foreach ($relationObjects as $object) {
-                            if ($objectPersisterRelation->handlesObject($object) && $this->isObjectIndexable($object)) {
-                                $this->handleInsert($task, $asso, $entity, $object);
-                                $scheduledForUpdate[] = $object;
+                if (null !== $relationObjects && !is_array($relationObjects)) {
+                    $scheduledForUpdate = [];
+                    // Collection of Objects (ManyToOne, ManyToMany)
+                    if ($relationObjects instanceof Collection) {
+                        if ($relationObjects->count() > 0) {
+                            foreach ($relationObjects as $object) {
+                                if ($objectPersisterRelation->handlesObject($object) && $this->isObjectIndexable(
+                                        $object
+                                    )) {
+                                    $this->handleInsert($task, $asso, $entity, $object);
+                                    $scheduledForUpdate[] = $object;
+                                }
                             }
+                            $this->handleReplaceMany($objectPersisterRelation, $scheduledForUpdate, $task);
                         }
-                        $this->handleReplaceMany($objectPersisterRelation, $scheduledForUpdate, $task);
-                    }
-                } else {
-                    // One object
-                    $object = $relationObjects;
-                    if ($objectPersisterRelation->handlesObject($object) && $this->isObjectIndexable($object)) {
-                        $this->handleInsert($task, $asso, $entity, $object);
-                        $scheduledForUpdate[] = $object;
+                    } else {
+                        // One object
+                        $object = $relationObjects;
+                        if ($objectPersisterRelation->handlesObject($object) && $this->isObjectIndexable($object)) {
+                            $this->handleInsert($task, $asso, $entity, $object);
+                            $scheduledForUpdate[] = $object;
 
-                        $this->handleReplaceMany($objectPersisterRelation, $scheduledForUpdate, $task);
+                            $this->handleReplaceMany($objectPersisterRelation, $scheduledForUpdate, $task);
+                        }
                     }
                 }
             }
