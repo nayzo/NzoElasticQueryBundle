@@ -23,9 +23,9 @@ services:
         class: Nzo\ElasticQueryBundle\Validator\SchemaValidator
 
     nzo.elastic_query.search_access_checker:
-    class: Nzo\ElasticQueryBundle\Security\SearchAccessChecker
-    arguments:
-        - '@security.authorization_checker'
+        class: Nzo\ElasticQueryBundle\Security\SearchAccessChecker
+        arguments:
+            - '@security.authorization_checker'
 
     nzo.elastic_query.search:
         class: Nzo\ElasticQueryBundle\Query\ElasticQuerySearch
