@@ -247,9 +247,11 @@ class SearchManager
     private function setIfNested($query, $field)
     {
         if (\strpos($field, '.') !== false) { // nested
-            $nestedEntity = \explode('.', $field)[0];
 
-            return ['nested' => ['path' => $nestedEntity, 'query' => $query]];
+            $path = substr($field, 0, strrpos($field, '.'));
+            $newQuery = ['nested' => ['path' => $path, 'query' => $query]];
+
+            return $this->setIfNested($newQuery, $path);
         }
 
         return $query;
