@@ -235,6 +235,13 @@ class SearchManager
 
                     return ['must' => $this->setIfNested(['range' => [$field => [$property => $value]]], $field)];
                     break;
+                case 'wildcard':
+                    $field = $this->getField($properties);
+                    $subQuery = $this->setIfNested(['wildcard' => [$field => $value]], $field);
+                    $buffer['bool'] = ['must' => $subQuery];
+
+                    return $buffer;
+                    break;
             }
         }
     }

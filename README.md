@@ -5,7 +5,7 @@ NzoElasticQueryBundle
 - This bundle is based on the FOSElasticaBundle implementation cf: https://github.com/FriendsOfSymfony/FOSElasticaBundle
 
 ##### Features included:
-- Search: **match**, **notmatch**, **isnull**, **in**, **notin**, **gte**, **gt**, **lte**, **lt**, **range**.
+- Search: **match**, **notmatch**, **isnull**, **in**, **notin**, **gte**, **gt**, **lte**, **lt**, **range**, **wildcard**.
 - Sort
 - Limitation
 - Pagination
@@ -140,6 +140,10 @@ POST  http://example.fr/search/myEnitity?page=1&limit=2
                 {
                     "field": "entity.title",
                     "notmatch": "bar"
+                },
+                {
+                    "field": "entity.title",
+                    "wildcard": "*toto*"
                 },
                 {
                     "and": [

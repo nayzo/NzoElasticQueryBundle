@@ -50,6 +50,9 @@
       "maxItems": 2,
       "uniqueItems": true
     },
+    "wildcard": {
+      "type": ["string", "number"]
+    },
     "or": {
       "type": [
         "object",
