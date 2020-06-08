@@ -11,9 +11,9 @@ NzoElasticQueryBundle
 - Pagination
 
 
-##### Requirement:
+##### Compatibility:
 
-- Symfony 3.4 or 4.x
+- Symfony >=3.4
 
 
 Installation
