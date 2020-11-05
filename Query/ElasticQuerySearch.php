@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * This file is part of the NzoElasticQueryBundle package.
+ *
+ * (c) Ala Eddine Khefifi <alakhefifi@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nzo\ElasticQueryBundle\Query;
 
 use Nzo\ElasticQueryBundle\Security\SearchAccessChecker;
@@ -40,12 +49,12 @@ class ElasticQuerySearch
      * @param string $entityNamespace The FQCN (fully qualified class name) of the entity to execute the search on.
      * @param null|int $page
      * @param null|int $limit
-     * @param array $roles At least one of the "roles" must be valid in order to execute the search. The exception "message" is optional: ['roles' => ['..'], 'message' => '..']
+     * @param array $accessOptions The role must be valid in order to execute the search. The exception "message" is optional: ['role' => '..', 'message' => '..']
      * @return array
      */
-    public function search($query, $entityNamespace, $page = null, $limit = null, array $roles = [])
+    public function search($query, $entityNamespace, $page = null, $limit = null, array $accessOptions = [])
     {
-        $this->searchAccessChecker->handleSearchAccess($roles);
+        $this->searchAccessChecker->handleSearchAccess($accessOptions);
 
         // $query must be or become an object
         if (\is_array($query)) {

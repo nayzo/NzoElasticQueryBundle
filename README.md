@@ -1,6 +1,9 @@
 NzoElasticQueryBundle
 =====================
 
+[![Build Status](https://travis-ci.org/nayzo/NzoElasticQueryBundle.svg?branch=master)](https://travis-ci.org/nayzo/NzoElasticQueryBundle)
+[![Latest Stable Version](https://poser.pugx.org/nzo/elastic-query-bundle/v/stable)](https://packagist.org/packages/nzo/elastic-query-bundle)
+
 - Symfony bundle used to execute search based on simple query language for the Elasticsearch system.
 - This bundle is based on the FOSElasticaBundle implementation cf: https://github.com/FriendsOfSymfony/FOSElasticaBundle
 
@@ -11,9 +14,7 @@ NzoElasticQueryBundle
 - Pagination
 
 
-##### Compatibility:
-
-- Symfony >=3.4
+###### This Bundle is compatible with **Symfony >= 4.4**
 
 
 Installation
@@ -25,25 +26,21 @@ Install the bundle:
 $ composer require nzo/elastic-query-bundle
 ```
 
-Register the bundle in app/AppKernel.php (Symfony V3):
+#### Register the bundle in config/bundles.php (without Flex)
 
 ``` php
-// app/AppKernel.php
+// config/bundles.php
 
-public function registerBundles()
-{
-    return array(
-        // ...
-        new Nzo\ElasticQueryBundle\NzoElasticQueryBundle(),
-    );
-}
+return [
+    // ...
+    Nzo\ElasticQueryBundle\ElasticQueryBundle::class => ['all' => true],
+];
 ```
 
-Configure the bundle:
+#### Configure the bundle:
 
 ``` yml
-# app/config/config.yml (Symfony V3)
-# config/packages/nzo_elastic_query.yaml (Symfony V4)
+# config/packages/nzo_elastic_query.yaml
 
 nzo_elastic_query:
     elastic_index_prefix:  # optional (the index prefix)
@@ -55,6 +52,7 @@ nzo_elastic_query:
 
 Usage
 -----
+
 ```php
 use Nzo\ElasticQueryBundle\Query\ElasticQuerySearch;
 
@@ -195,3 +193,10 @@ POST  http://example.fr/search/myEnitity?page=1&limit=2
     }
 }
 ```
+
+License
+-------
+
+This bundle is under the MIT license. See the complete license in the bundle:
+
+See [LICENSE](https://github.com/nayzo/NzoElasticQueryBundle/tree/master/LICENSE)

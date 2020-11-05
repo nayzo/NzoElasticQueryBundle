@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * This file is part of the NzoElasticQueryBundle package.
+ *
+ * (c) Ala Eddine Khefifi <alakhefifi@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nzo\ElasticQueryBundle\Security;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -16,23 +25,27 @@ class SearchAccessChecker
         $this->authorizationChecker = $authorizationChecker;
     }
 
-    public function handleSearchAccess(array $roles)
+    public function handleSearchAccess(array $accessOptions = [])
     {
+        if (empty($accessOptions)) {
+            return;
+        }
+
         $resolver = new OptionsResolver();
         $resolver->setDefaults(
             [
-                'roles' => [],
+                'role' => '',
                 'message' => 'Access Denied.',
             ]
         );
 
-        $options = $resolver->resolve($roles);
+        $options = $resolver->resolve($accessOptions);
 
-        if (empty($roles['roles'])) {
+        if (empty($options['role'])) {
             return;
         }
 
-        if (!$this->authorizationChecker->isGranted($options['roles'])) {
+        if (!$this->authorizationChecker->isGranted($options['role'])) {
             throw new AccessDeniedException($options['message']);
         }
     }

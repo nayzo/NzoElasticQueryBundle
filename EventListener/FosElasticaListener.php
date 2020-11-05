@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * This file is part of the NzoElasticQueryBundle package.
+ *
+ * (c) Ala Eddine Khefifi <alakhefifi@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nzo\ElasticQueryBundle\EventListener;
 
 use Doctrine\Common\Collections\Collection;
@@ -10,8 +19,8 @@ use Nzo\ElasticQueryBundle\Service\IndexTools;
 use FOS\ElasticaBundle\Persister\ObjectPersisterInterface;
 use FOS\ElasticaBundle\Provider\IndexableInterface;
 use Symfony\Component\DependencyInjection\ServiceLocator;
-use Symfony\Component\Inflector\Inflector;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\String\Inflector\EnglishInflector;
 
 class FosElasticaListener implements EventSubscriber
 {
@@ -28,6 +37,7 @@ class FosElasticaListener implements EventSubscriber
     private $propertyAccessor;
     private $indexTools;
     private $serviceLocator;
+    private $inflector;
 
     public function __construct(
         ObjectPersisterInterface $objectPersister,
@@ -47,6 +57,7 @@ class FosElasticaListener implements EventSubscriber
             ),
             $config
         );
+        $this->inflector = new EnglishInflector();
     }
 
     public function getSubscribedEvents()
@@ -140,7 +151,7 @@ class FosElasticaListener implements EventSubscriber
      * @param Object $entity
      * @param string $stask
      */
-    private function updateRelations($objectManager, $entity, $task = self::ACTION_UPDATE)
+    private function updateRelations($objectManager, $entity, string $task = self::ACTION_UPDATE)
     {
         // Get all association of the current entity
         $entityAssociations = $objectManager->getMetadataFactory()
@@ -231,15 +242,20 @@ class FosElasticaListener implements EventSubscriber
                 );
             }
 
-            $ressource = Inflector::singularize($ressource);
-            $setAssoObject = 'add'.\ucfirst($ressource);
+            $singularizedRessource = $this->inflector->singularize($ressource);
+            if (empty($singularizedRessource)) {
+                $singularizedRessource = $ressource;
+            } else {
+                $singularizedRessource = $singularizedRessource[0];
+            }
+            $setAssoObject = 'add'.\ucfirst($singularizedRessource);
             if (\method_exists($object, $setAssoObject)) {
                 $object->$setAssoObject($entity);
 
                 return;
             }
 
-            $setAssoObject = 'set'.\ucfirst($ressource);
+            $setAssoObject = 'set'.\ucfirst($singularizedRessource);
             if (\method_exists($object, $setAssoObject)) {
                 $object->$setAssoObject($entity);
 
@@ -249,8 +265,8 @@ class FosElasticaListener implements EventSubscriber
             throw new \InvalidArgumentException(
                 \sprintf(
                     'One of the methods "%s" or "%s" must be implemented in the entity "%s"',
-                    'set'.\ucfirst($ressource),
-                    'add'.\ucfirst($ressource),
+                    'set'.\ucfirst($singularizedRessource),
+                    'add'.\ucfirst($singularizedRessource),
                     \get_class($object)
                 )
             );
