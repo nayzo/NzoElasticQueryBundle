@@ -17,26 +17,14 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class SearchManager
 {
     private $indexTools;
-    /**
-     * @var array
-     */
     private $indexProperties;
 
-    /**
-     * SearchManager constructor.
-     *
-     * @param IndexTools $indexTools
-     */
     public function __construct(IndexTools $indexTools)
     {
         $this->indexTools = $indexTools;
     }
 
-    /**
-     * @param object $queryObj
-     * @param string $entityNamespace
-     */
-    public function resolveQueryMapping($queryObj, $entityNamespace)
+    public function resolveQueryMapping($queryObj, string $entityNamespace)
     {
         $query = $queryObj->query;
 
@@ -49,11 +37,7 @@ class SearchManager
         return $resultQuery;
     }
 
-    /**
-     * @param object $searchModel
-     * @return array
-     */
-    private function createQuery($searchModel)
+    private function createQuery($searchModel): array
     {
         $properties = \get_object_vars($searchModel);
 
@@ -67,11 +51,7 @@ class SearchManager
         return ['bool' => $nativeQuery];
     }
 
-    /**
-     * @param array $properties
-     * @param array $nativeQuery
-     */
-    private function queryGenerationHandler(array $properties, &$nativeQuery)
+    private function queryGenerationHandler(array $properties, array &$nativeQuery)
     {
         if (empty($properties)) {
             return;
@@ -125,11 +105,7 @@ class SearchManager
         }
     }
 
-    /**
-     * @param array $properties
-     * @return mixed
-     */
-    private function executeQueryGeneration(array $properties)
+    private function executeQueryGeneration($properties)
     {
         $this->queryChecker($properties);
 
@@ -149,7 +125,8 @@ class SearchManager
                         }
 
                         return $buffer;
-                    } elseif (\is_object($value)) {
+                    }
+                    if (\is_object($value)) {
                         $value = \get_object_vars($value);
                         $result = $this->executeQueryGeneration($value);
                         if (\array_key_exists('must', $result) && !\array_key_exists('bool', $result)) {
@@ -174,7 +151,8 @@ class SearchManager
                         }
 
                         return $buffer;
-                    } elseif (\is_object($value)) {
+                    }
+                    if (\is_object($value)) {
                         $value = \get_object_vars($value);
                         $result = $this->executeQueryGeneration($value);
                         if (\array_key_exists('bool', $result)) {
@@ -192,14 +170,12 @@ class SearchManager
                     $buffer['bool'] = ['must' => $subQuery];
 
                     return $buffer;
-                    break;
                 case 'notmatch':
                     $field = $this->getField($properties);
                     $subQuery = $this->setIfNested(['match' => [$field => $value]], $field);
                     $buffer['bool'] = ['must_not' => $subQuery];
 
                     return $buffer;
-                    break;
                 case 'isnull':
                     $field = $this->getField($properties);
                     $subQuery = $this->setIfNested(['exists' => ['field' => $field]], $field);
@@ -211,21 +187,18 @@ class SearchManager
                     }
 
                     return $buffer;
-                    break;
                 case 'in':
                     $field = $this->getField($properties);
                     $subQuery = $this->setIfNested(['terms' => [$field => $value]], $field);
                     $buffer['bool'] = ['must' => $subQuery];
 
                     return $buffer;
-                    break;
                 case 'notin':
                     $field = $this->getField($properties);
                     $subQuery = $this->setIfNested(['terms' => [$field => $value]], $field);
                     $buffer['bool'] = ['must_not' => $subQuery];
 
                     return $buffer;
-                    break;
                 case 'range':
                     $field = $this->getField($properties);
 
@@ -235,7 +208,6 @@ class SearchManager
                             $field
                         ),
                     ];
-                    break;
                 case 'gt':
                 case 'gte':
                 case 'lt':
@@ -243,24 +215,17 @@ class SearchManager
                     $field = $this->getField($properties);
 
                     return ['must' => $this->setIfNested(['range' => [$field => [$property => $value]]], $field)];
-                    break;
                 case 'wildcard':
                     $field = $this->getField($properties);
                     $subQuery = $this->setIfNested(['wildcard' => [$field => $value]], $field);
                     $buffer['bool'] = ['must' => $subQuery];
 
                     return $buffer;
-                    break;
             }
         }
     }
 
-    /**
-     * @param array $query
-     * @param string $field
-     * @return array
-     */
-    private function setIfNested($query, $field)
+    private function setIfNested(array $query, string $field): array
     {
         if (\strpos($field, '.') !== false) { // nested
 
@@ -273,11 +238,7 @@ class SearchManager
         return $query;
     }
 
-    /**
-     * @param array $sortList
-     * @return array
-     */
-    private function createSort(array $sortList)
+    private function createSort(array $sortList): array
     {
         $resultSort = [];
         foreach ($sortList as $sort) {
@@ -299,11 +260,8 @@ class SearchManager
 
     /**
      * An alternative to the Fielddata elasticsearch limitation for sorting fields with "text" type.
-     *
-     * @param string $baseField
-     * @return string
      */
-    private function sortResolver($baseField)
+    private function sortResolver(string $baseField): string
     {
         if ($this->isNested($baseField)) { // nested
             list($nestedEntity, $field) = \explode('.', $baseField);
@@ -315,20 +273,12 @@ class SearchManager
         return 'text' === $fieldType ? $baseField.'.sort' : $baseField;
     }
 
-    /**
-     * @param string $baseField
-     * @return bool
-     */
-    private function isNested($baseField)
+    private function isNested(string $baseField): bool
     {
         return \strpos($baseField, '.') !== false;
     }
 
-    /**
-     * @param array $elemProperties
-     * @return string
-     */
-    private function getField(array &$elemProperties)
+    private function getField(array &$elemProperties): string
     {
         if (empty($elemProperties['field'])) {
             throw new BadRequestHttpException(
@@ -342,10 +292,7 @@ class SearchManager
         return $field;
     }
 
-    /**
-     * @param array $query
-     */
-    private function queryChecker(array $query)
+    private function queryChecker(array $query): void
     {
         if (empty($query)) {
             throw new BadRequestHttpException('Not allowed empty object query body');
@@ -370,10 +317,7 @@ class SearchManager
         }
     }
 
-    /**
-     * @return array
-     */
-    private function getAll()
+    private function getAll(): array
     {
         return array(
             'match_all' => new \stdClass,

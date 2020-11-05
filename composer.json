@@ -20,6 +20,7 @@
     },
     "require": {
         "php": "^7.2.5",
+        "ext-json": "*",
         "doctrine/orm": "^2.6",
         "doctrine/persistence": "^2.1",
         "friendsofsymfony/elastica-bundle": "^5.0|^5.x-dev|^6.x-dev",

@@ -16,19 +16,12 @@ class QueryValidator extends AbstractValidator
         $this->indexTools = $indexTools;
     }
 
-    /**
-     * @return bool
-     */
-    public function isSearchQueryValid()
+    public function isSearchQueryValid(): bool
     {
         return empty($this->getValidationErrors());
     }
 
-    /**
-     * @param array $query
-     * @param string $entityNamespace
-     */
-    public function checkSearchQuery(array $query, $entityNamespace)
+    public function checkSearchQuery(array $query, string $entityNamespace): void
     {
         foreach ($query as $key => $value) {
             if (\in_array($key, ['or', 'and'], true)) {
@@ -49,11 +42,7 @@ class QueryValidator extends AbstractValidator
         }
     }
 
-    /**
-     * @param array $query
-     * @param string $entityNamespace
-     */
-    public function checkSortQuery(array $query, $entityNamespace)
+    public function checkSortQuery(array $query, string $entityNamespace): void
     {
         foreach ($query as $queryValue) {
             $sort = \get_object_vars($queryValue);
@@ -63,13 +52,7 @@ class QueryValidator extends AbstractValidator
         }
     }
 
-    /**
-     * @param string $key
-     * @param string $value
-     * @param string $entityNamespace
-     * @param bool $isSort
-     */
-    private function checkFieldExist($key, $value, $entityNamespace, $isSort = false)
+    private function checkFieldExist(?string $key, string $value, string $entityNamespace, $isSort = false)
     {
         if ('field' === $key) {
             if (\strpos($value, '.') !== false) {
@@ -106,11 +89,7 @@ class QueryValidator extends AbstractValidator
         }
     }
 
-    /**
-     * @param string $key
-     * @param mixed $value
-     */
-    private function checkRange($key, $value)
+    private function checkRange(string $key, $value): void
     {
         if ('range' === $key) {
             if (\gettype($value[0]) !== \gettype($value[1])) {
@@ -131,11 +110,7 @@ class QueryValidator extends AbstractValidator
         }
     }
 
-    /**
-     * @param string $key
-     * @param mixed $value
-     */
-    private function checkGtLtFields($key, $value)
+    private function checkGtLtFields(string $key, $value): void
     {
         if (\in_array($key, ['gt', 'gte', 'lt', 'lte'], true)) {
             if (\is_string($value)) { // date
@@ -146,12 +121,7 @@ class QueryValidator extends AbstractValidator
         }
     }
 
-    /**
-     * @param string $dateString
-     * @param string $format
-     * @return bool
-     */
-    private function isDateValid($dateString)
+    private function isDateValid(string $dateString): bool
     {
         $formats = ['Y-m-d', 'Y-m-d\TH', 'Y-m-d\TH:i', 'Y-m-d\TH:i:s'];
         foreach ($formats as $format) {

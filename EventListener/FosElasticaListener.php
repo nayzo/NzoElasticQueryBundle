@@ -60,7 +60,7 @@ class FosElasticaListener implements EventSubscriber
         $this->inflector = new EnglishInflector();
     }
 
-    public function getSubscribedEvents()
+    public function getSubscribedEvents(): array
     {
         return array(
             'postPersist',
@@ -73,10 +73,8 @@ class FosElasticaListener implements EventSubscriber
 
     /**
      * Looks for new objects that should be indexed.
-     *
-     * @param LifecycleEventArgs $eventArgs
      */
-    public function postPersist(LifecycleEventArgs $eventArgs)
+    public function postPersist(LifecycleEventArgs $eventArgs): void
     {
         $entity = $eventArgs->getObject();
 
@@ -89,10 +87,8 @@ class FosElasticaListener implements EventSubscriber
 
     /**
      * Looks for objects being updated that should be indexed or removed from the index.
-     *
-     * @param LifecycleEventArgs $eventArgs
      */
-    public function postUpdate(LifecycleEventArgs $eventArgs)
+    public function postUpdate(LifecycleEventArgs $eventArgs): void
     {
         $entity = $eventArgs->getObject();
         if ($this->objectPersister->handlesObject($entity)) {
@@ -109,10 +105,8 @@ class FosElasticaListener implements EventSubscriber
 
     /**
      * Delete objects on preRemove instead of postRemove so that we have access to the id.
-     *
-     * @param LifecycleEventArgs $eventArgs
      */
-    public function preRemove(LifecycleEventArgs $eventArgs)
+    public function preRemove(LifecycleEventArgs $eventArgs): void
     {
         $entity = $eventArgs->getObject();
         if ($this->objectPersister->handlesObject($entity)) {
@@ -122,10 +116,8 @@ class FosElasticaListener implements EventSubscriber
 
     /**
      * Update relations on postRemove
-     *
-     * @param LifecycleEventArgs $eventArgs
      */
-    public function postRemove(LifecycleEventArgs $eventArgs)
+    public function postRemove(LifecycleEventArgs $eventArgs): void
     {
         $entity = $eventArgs->getObject();
 
@@ -139,19 +131,15 @@ class FosElasticaListener implements EventSubscriber
      * Iterating through scheduled actions *after* flushing ensures that the
      * ElasticSearch index will be affected only if the query is successful.
      */
-    public function postFlush()
+    public function postFlush(): void
     {
         $this->flushScheduled();
     }
 
     /**
      * Update all object's relation managed by Doctrine
-     *
-     * @param ObjectManager $objectManager
-     * @param Object $entity
-     * @param string $stask
      */
-    private function updateRelations($objectManager, $entity, string $task = self::ACTION_UPDATE)
+    private function updateRelations(ObjectManager $objectManager, $entity, string $task = self::ACTION_UPDATE): void
     {
         // Get all association of the current entity
         $entityAssociations = $objectManager->getMetadataFactory()
@@ -195,16 +183,11 @@ class FosElasticaListener implements EventSubscriber
         }
     }
 
-    /**
-     * @param ObjectPersisterInterface $objectPersisterRelation
-     * @param array $scheduledForUpdate
-     * @param string $task
-     */
     private function handleReplaceMany(
         ObjectPersisterInterface $objectPersisterRelation,
         array $scheduledForUpdate,
-        $task
-    ) {
+        string $task
+    ): void {
         if (self::ACTION_REMOVE === $task) {
             $scheduledForRemove = [];
             foreach ($scheduledForUpdate as $object) {
@@ -220,13 +203,7 @@ class FosElasticaListener implements EventSubscriber
         }
     }
 
-    /**
-     * @param string $task
-     * @param array $asso
-     * @param Object $entity
-     * @param Object $object
-     */
-    private function handleInsert($task, array $asso, $entity, $object)
+    private function handleInsert(string $task, array $asso, $entity, $object)
     {
         if (self::ACTION_INSERT === $task) {
             $ressource = !empty($asso['inversedBy']) ? $asso['inversedBy'] : null;
@@ -277,7 +254,7 @@ class FosElasticaListener implements EventSubscriber
      * Persist scheduled objects to ElasticSearch
      * After persisting, clear the scheduled queue to prevent multiple data updates when using multiple flush calls.
      */
-    private function flushScheduled()
+    private function flushScheduled(): void
     {
         if (\count($this->scheduledForInsertion)) {
             $this->objectPersister->insertMany($this->scheduledForInsertion);
@@ -295,10 +272,8 @@ class FosElasticaListener implements EventSubscriber
 
     /**
      * Set the specified identifier to delete.
-     *
-     * @param object $object
      */
-    private function scheduleForDeletion($object)
+    private function scheduleForDeletion($object): void
     {
         if ($identifierValue = $this->propertyAccessor->getValue($object, $this->config['identifier'])) {
             $this->scheduledForDeletion[] = $identifierValue;
@@ -307,11 +282,8 @@ class FosElasticaListener implements EventSubscriber
 
     /**
      * Checks if the object is indexable or not.
-     *
-     * @param object $object
-     * @return bool
      */
-    private function isObjectIndexable($object)
+    private function isObjectIndexable($object): bool
     {
         return $this->indexable->isObjectIndexable(
             $this->config['indexName'],

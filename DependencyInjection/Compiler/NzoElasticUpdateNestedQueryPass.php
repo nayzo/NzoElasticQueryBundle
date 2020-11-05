@@ -72,7 +72,7 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
         }
     }
 
-    private function persistersLazyLoading(ContainerBuilder $container)
+    private function persistersLazyLoading(ContainerBuilder $container): void
     {
         $taggedServices = $container->findTaggedServiceIds('fos_elastica.persister');
 
@@ -88,15 +88,12 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
             ->addTag('container.service_locator');
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @param IndexTools $indexTools
-     * @param string $namespace
-     * @param string $field
-     * @return string|null
-     */
-    private function getNestedEntityName(ContainerBuilder $container, IndexTools $indexTools, $namespace, $field)
-    {
+    private function getNestedEntityName(
+        ContainerBuilder $container,
+        IndexTools $indexTools,
+        string $namespace,
+        string $field
+    ): ?string {
         if ($container->has('doctrine.orm.default_annotation_metadata_driver')) {
             return $this->resolveAnnotationNestedEntityName($indexTools, $namespace, $field);
         }
@@ -111,51 +108,46 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
         );
     }
 
-    /**
-     * @param IndexTools $indexTools
-     * @param string $namespace
-     * @param string $field
-     * @return string|null
-     * @throws \RuntimeException
-     */
-    private function resolveAnnotationNestedEntityName(IndexTools $indexTools, $namespace, $field)
-    {
-        if (\class_exists($namespace)) {
-            try {
-                $object = new \ReflectionClass($namespace);
-                $properties = $object->getProperties();
-                foreach ($properties as $property) {
-                    if ($property->getName() === $field) {
-                        $p1 = \strpos($property->getDocComment(), 'targetEntity="');
-                        $p2 = \strpos($property->getDocComment(), '"', $p1 + 14);
-                        $target = \substr($property->getDocComment(), $p1 + 14, $p2 - ($p1 + 14));
-                        if (!empty($target)) {
-                            return $indexTools->getElasticType($target);
-                        }
+    private function resolveAnnotationNestedEntityName(
+        IndexTools $indexTools,
+        string $namespace,
+        string $field
+    ): ?string {
+        if (!\class_exists($namespace)) {
+            return null;
+        }
 
-                        return null;
+        try {
+            $object = new \ReflectionClass($namespace);
+            $properties = $object->getProperties();
+            foreach ($properties as $property) {
+                if ($property->getName() === $field) {
+                    $p1 = \strpos($property->getDocComment(), 'targetEntity="');
+                    $p2 = \strpos($property->getDocComment(), '"', $p1 + 14);
+                    $target = \substr($property->getDocComment(), $p1 + 14, $p2 - ($p1 + 14));
+                    if (!empty($target)) {
+                        return $indexTools->getElasticType($target);
                     }
+
+                    return null;
                 }
-            } catch (\Exception $e) {
-                throw new \RuntimeException(
-                    \sprintf(
-                        'Annotaion nested entity name can\'t be resolved. Exception: %s',
-                        $e->getMessage()
-                    )
-                );
             }
+        } catch (\Exception $e) {
+            throw new \RuntimeException(
+                \sprintf(
+                    'Annotaion nested entity name can\'t be resolved. Exception: %s',
+                    $e->getMessage()
+                )
+            );
         }
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @param IndexTools $indexTools
-     * @param string $namespace
-     * @param string $field
-     * @return string|null
-     */
-    private function resolveYmlNestedEntityName(ContainerBuilder $container, IndexTools $indexTools, $namespace, $field)
-    {
+    private function resolveYmlNestedEntityName(
+        ContainerBuilder $container,
+        IndexTools $indexTools,
+        string $namespace,
+        string $field
+    ): ?string {
         $ymlDriver = $container->getDefinition('doctrine.orm.default_yml_metadata_driver');
         $argument = $ymlDriver->getArgument(0);
         $dir = \array_keys($argument)[0];

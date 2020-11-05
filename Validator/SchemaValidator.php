@@ -6,12 +6,7 @@ use JsonSchema;
 
 class SchemaValidator extends AbstractValidator
 {
-    /**
-     * @param object $query
-     * @param string $jsonSchemaFile
-     * @return bool
-     */
-    public function isJsonSchemaValid($query, $jsonSchemaFile = 'schema.json')
+    public function isJsonSchemaValid($query, string $jsonSchemaFile = 'schema.json'): bool
     {
         $schema = \sprintf('%s/../Json/Validation/%s', \realpath(__DIR__), $jsonSchemaFile);
 
@@ -40,12 +35,7 @@ class SchemaValidator extends AbstractValidator
         return false;
     }
 
-    /**
-     * @param string $errorMsg
-     * @param string $propertyPath
-     * @return bool
-     */
-    private function isInvalidErrorMessage($errorMsg, $propertyPath)
+    private function isInvalidErrorMessage(string $errorMsg, string $propertyPath): bool
     {
         $objToArrayMsg = 'Object value found, but an array is required';
         $arrayToObjMsg = 'Array value found, but an object is required';
