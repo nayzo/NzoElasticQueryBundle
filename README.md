@@ -87,7 +87,7 @@ class MyClass
             $entityNamespace,
             $page,
             $limit,
-            ['roles' => ['ROLE_SEARCH', 'ROLE_ADMIN'], 'message' => 'Search not authorized'] // 'message' is optional
+            ['role' => 'ROLE_SEARCH', 'message' => 'Search not authorized'] // 'message' is optional
         );
     }
 }
