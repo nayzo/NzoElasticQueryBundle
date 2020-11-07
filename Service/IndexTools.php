@@ -16,7 +16,7 @@ class IndexTools
     private $appElasticIndexConfigs;
     private $elasticIndexPrefix;
 
-    public function __construct(string $appElasticIndexConfigs, string $elasticIndexPrefix)
+    public function __construct(array $appElasticIndexConfigs, string $elasticIndexPrefix)
     {
         $this->appElasticIndexConfigs = $appElasticIndexConfigs;
         $this->elasticIndexPrefix = $elasticIndexPrefix;
