@@ -12,9 +12,10 @@
 namespace Nzo\ElasticQueryBundle\EventListener;
 
 use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\Common\EventSubscriber;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
+use Doctrine\ORM\Events;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Nzo\ElasticQueryBundle\Service\IndexTools;
 use FOS\ElasticaBundle\Persister\ObjectPersisterInterface;
 use FOS\ElasticaBundle\Provider\IndexableInterface;
@@ -22,7 +23,7 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\String\Inflector\EnglishInflector;
 
-class FosElasticaListener implements EventSubscriber
+class FosElasticaSubscriber implements EventSubscriber
 {
     const ACTION_INSERT = 'insert';
     const ACTION_UPDATE = 'update';
@@ -60,14 +61,14 @@ class FosElasticaListener implements EventSubscriber
         $this->inflector = new EnglishInflector();
     }
 
-    public function getSubscribedEvents(): array
+    public function getSubscribedEvents()
     {
         return array(
-            'postPersist',
-            'preRemove',
-            'postRemove',
-            'postUpdate',
-            'postFlush',
+            Events::postPersist,
+            Events::preRemove,
+            Events::postRemove,
+            Events::postUpdate,
+            Events::postFlush,
         );
     }
 

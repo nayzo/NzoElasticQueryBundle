@@ -11,7 +11,7 @@
 
 namespace Nzo\ElasticQueryBundle\DependencyInjection\Compiler;
 
-use Nzo\ElasticQueryBundle\EventListener\FosElasticaListener;
+use Nzo\ElasticQueryBundle\EventListener\FosElasticaSubscriber;
 use Nzo\ElasticQueryBundle\Service\IndexTools;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -54,7 +54,7 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
 
                 if ($container->has($elsasticaPersesterId)) {
                     $definition = new Definition(
-                        FosElasticaListener::class, [
+                        FosElasticaSubscriber::class, [
                             new Reference($elsasticaPersesterId),
                             new Reference('fos_elastica.indexable'),
                             new Reference('nzo.elastic_query.index_tools'),
