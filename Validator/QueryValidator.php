@@ -52,7 +52,7 @@ class QueryValidator extends AbstractValidator
         }
     }
 
-    private function checkFieldExist(?string $key, string $value, string $entityNamespace, $isSort = false)
+    private function checkFieldExist(?string $key, $value, string $entityNamespace, $isSort = false)
     {
         if ('field' === $key) {
             if (\strpos($value, '.') !== false) {
