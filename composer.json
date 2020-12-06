@@ -22,7 +22,7 @@
         "php": "^7.2.5",
         "ext-json": "*",
         "doctrine/orm": "^2.6",
-        "doctrine/persistence": "^2.1",
+        "doctrine/persistence": "^1.0|^2.0",
         "friendsofsymfony/elastica-bundle": "^5.0|^5.x-dev|^6.x-dev",
         "justinrainbow/json-schema": "^5.2",
         "symfony/framework-bundle": "^4.4|^5.0",
