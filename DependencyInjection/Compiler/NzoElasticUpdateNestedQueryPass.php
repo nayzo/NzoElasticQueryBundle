@@ -93,7 +93,7 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
         IndexTools $indexTools,
         string $namespace,
         string $field
-    ): ?string {
+    ) {
         if ($container->has('doctrine.orm.default_annotation_metadata_driver')) {
             return $this->resolveAnnotationNestedEntityName($indexTools, $namespace, $field);
         }
@@ -112,7 +112,7 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
         IndexTools $indexTools,
         string $namespace,
         string $field
-    ): ?string {
+    ) {
         if (!\class_exists($namespace)) {
             return null;
         }
@@ -147,7 +147,7 @@ class NzoElasticUpdateNestedQueryPass implements CompilerPassInterface
         IndexTools $indexTools,
         string $namespace,
         string $field
-    ): ?string {
+    ) {
         $ymlDriver = $container->getDefinition('doctrine.orm.default_yml_metadata_driver');
         $argument = $ymlDriver->getArgument(0);
         $dir = \array_keys($argument)[0];
