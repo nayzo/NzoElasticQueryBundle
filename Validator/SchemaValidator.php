@@ -35,7 +35,7 @@ class SchemaValidator extends AbstractValidator
         return false;
     }
 
-    private function isInvalidErrorMessage(string $errorMsg, string $propertyPath): bool
+    private function isInvalidErrorMessage(string $errorMsg, $propertyPath): bool
     {
         $objToArrayMsg = 'Object value found, but an array is required';
         $arrayToObjMsg = 'Array value found, but an object is required';
