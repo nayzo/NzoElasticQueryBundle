@@ -13,11 +13,6 @@
     "autoload": {
         "psr-4": { "Nzo\\ElasticQueryBundle\\": "" }
     },
-    "autoload-dev": {
-        "psr-4": {
-            "Nzo\\ElasticQueryBundle\\Tests\\": "/tests/"
-        }
-    },
     "require": {
         "php": "^7.2.5",
         "ext-json": "*",
