@@ -42,6 +42,6 @@ class IndexTools
     {
         $type = $this->getElasticType($entityNamespace);
 
-        return $this->appElasticIndexConfigs[$this->getElasticIndex($type)]['types'][$type]['mapping']['properties'];
+        return $this->appElasticIndexConfigs[$this->getElasticIndex($type)]['mapping']['properties'];
     }
 }

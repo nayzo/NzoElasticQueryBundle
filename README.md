@@ -7,6 +7,17 @@ NzoElasticQueryBundle
 - Symfony bundle used to execute search based on simple query language for the Elasticsearch system.
 - This bundle is based on the FOSElasticaBundle implementation cf: https://github.com/FriendsOfSymfony/FOSElasticaBundle
 
+
+Versions & Dependencies
+-----------------------
+
+| NzoElasticQueryBundle                                                                       | Elasticsearch | Symfony    | PHP   |
+| --------------------------------------------------------------------------------------- | ------------- | ---------- | ----- |
+| [3.0] (master)                                                                          | 7.\*          | \>=4.4 | ^7.2 / ^8.0 |
+| [2.0]                                                                               | 5.\* / 6.\*    | \>=4.4   | ^7.2 |
+
+
+
 ##### Features included:
 - Search: **match**, **notmatch**, **isnull**, **in**, **notin**, **gte**, **gt**, **lte**, **lt**, **range**, **wildcard**.
 - Sort
@@ -98,21 +109,19 @@ Configure index
 ```yaml
 fos_elastica:
     indexes:
-        foo_bar: # the index name must reflect the entity name in "snake_case", exp: foo_bar
-            types:
-                fooBar: # the type name must reflect the entity name in "camelCase", exp: fooBar
-                    properties:
-                        id:
-                            type: keyword
-                            index: true
-                        createdAt:
-                            type:   date
-                    persistence:
-                        driver: orm
-                        model: App\Entity\FooBar
-                        provider: ~
-                        finder: ~
-                        repository: Nzo\ElasticQueryBundle\Repository\SearchRepository
+        user:
+            properties:
+                id:
+                    type: keyword
+                    index: true
+                createdAt:
+                    type:   date
+            persistence:
+                driver: orm
+                model: App\Entity\User
+                provider: ~
+                finder: ~
+                repository: Nzo\ElasticQueryBundle\Repository\SearchRepository
 ```
 
 Populate index
