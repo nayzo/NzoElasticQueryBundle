@@ -5,10 +5,7 @@ NzoElasticQueryBundle
 [![Latest Stable Version](https://poser.pugx.org/nzo/elastic-query-bundle/v/stable)](https://packagist.org/packages/nzo/elastic-query-bundle)
 
 - Symfony bundle used to execute search based on simple query language for the Elasticsearch system.
-- This bundle is based on the FOSElasticaBundle implementation cf: https://github.com/FriendsOfSymfony/FOSElasticaBundle  
-  
-- PHP Version: **"^7.2.5"**
-- Elasticsearch Version: **"5.x|6.x"**
+- This bundle is based on the FOSElasticaBundle implementation cf: https://github.com/FriendsOfSymfony/FOSElasticaBundle
 
 
 Versions & Dependencies
