@@ -14,7 +14,7 @@
         "psr-4": { "Nzo\\ElasticQueryBundle\\": "" }
     },
     "require": {
-        "php": "^7.2.5",
+        "php": ">=7.2.5",
         "ext-json": "*",
         "doctrine/orm": "^2.6",
         "doctrine/persistence": "^1.0|^2.0",
