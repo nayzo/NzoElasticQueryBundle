@@ -111,11 +111,6 @@ class ElasticQuerySearch
         }
     }
 
-    public function resetValidationErrors()
-    {
-        $this->queryValidator->resetValidationErrors();
-    }
-
     private function getValidationErrorResponse(array $formattedErrors)
     {
         throw new BadRequestHttpException(\json_encode($formattedErrors), null, Response::HTTP_BAD_REQUEST);
