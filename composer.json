@@ -18,7 +18,7 @@
         "ext-json": "*",
         "doctrine/orm": "^2.6",
         "doctrine/persistence": "^1.0|^2.0",
-        "friendsofsymfony/elastica-bundle": "^5.0|^5.x-dev|^6.x-dev",
+        "friendsofsymfony/elastica-bundle": "^5.0|^5.x-dev|^6.x-dev|^6.0.0-beta4",
         "justinrainbow/json-schema": "^5.2",
         "symfony/framework-bundle": "^4.4|^5.0",
         "symfony/http-foundation": "^4.4|^5.0",
