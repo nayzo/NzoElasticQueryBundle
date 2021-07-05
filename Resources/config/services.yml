@@ -34,7 +34,7 @@ services:
             - '@nzo.elastic_query.schema_validator'
             - '@nzo.elastic_query.search_manager'
             - '@nzo.elastic_query.search_access_checker'
-            - '@fos_elastica.manager.orm'
+            - '@fos_elastica.manager'
             -
                 - '%nzo_elastic_index.default_page_number%'
                 - '%nzo_elastic_index.limit_per_page%'
