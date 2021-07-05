@@ -265,9 +265,12 @@ class SearchManager
     {
         if ($this->isNested($baseField)) { // nested
             list($nestedEntity, $field) = \explode('.', $baseField);
-            $fieldType = $this->indexProperties[$nestedEntity]['properties'][$field]['type'];
+
+            $fieldType = $this->indexProperties[$nestedEntity]['properties'][$field];
+            $fieldType = empty($fieldType['type']) ? 'text' : $fieldType['type'];
         } else {
-            $fieldType = $this->indexProperties[$baseField]['type'];
+            $fieldType = $this->indexProperties[$baseField];
+            $fieldType = empty($fieldType['type']) ? 'text' : $fieldType['type'];
         }
 
         return 'text' === $fieldType ? $baseField.'.sort' : $baseField;
