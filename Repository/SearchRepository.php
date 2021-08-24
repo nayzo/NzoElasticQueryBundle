@@ -19,12 +19,12 @@ class SearchRepository extends Repository
      * @param array $query
      * @param int|null $page
      * @param int|null $limit
-     * @param array $options (int defaultPageNumber, int limitPerPage, int itemsMaxLimit)
+     * @param array $options (int defaultPageNumber, int limitPerPage, int itemsMaxLimit, bool showScore)
      * @return array
      */
     public function executeSearch(array $query, $page, $limit, array $options)
     {
-        list($defaultPageNumber, $limitPerPage, $itemsMaxLimit) = $options;
+        list($defaultPageNumber, $limitPerPage, $itemsMaxLimit, $showScore) = $options;
         if (empty($page) || !\is_int($page) || $page < 1) {
             $page = $defaultPageNumber;
         }
@@ -33,6 +33,30 @@ class SearchRepository extends Repository
             $limit = $limitPerPage;
         } else {
             $limit = \min($limit, $itemsMaxLimit);
+        }
+
+        if ($showScore) {
+            $adapter = $this->finder->findHybridPaginated($query);
+            $adapter->setMaxPerPage($limit);
+            $adapter->setCurrentPage($page);
+
+            /** @var FOS\ElasticaBundle\HybridResult $list */
+            $items = [];
+            foreach ($adapter->getIterator() as $hybridResult) {
+                $object = $hybridResult->getTransformed();
+                if (method_exists($object,'setScoreElastic')) {
+                    $object->setScoreElastic($hybridResult->getResult()->getScore());
+                }
+                $items[] = $hybridResult->getTransformed();
+            }
+
+            $totalHits = $adapter->getNbResults();
+
+            return [
+                'items' => $items,
+                'totalItems' => $adapter->getNbResults(),
+                'totalPages' => $totalHits ? (int)\ceil($totalHits / $limit) : 1,
+            ];
         }
 
         $adapter = $this->finder->createPaginatorAdapter($query)->getResults(($page - 1) * $limit, $limit);
