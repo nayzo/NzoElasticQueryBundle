@@ -39,3 +39,4 @@ services:
                 - '%nzo_elastic_index.default_page_number%'
                 - '%nzo_elastic_index.limit_per_page%'
                 - '%nzo_elastic_index.items_max_limit%'
+                - '%nzo_elastic_index.show_score%'

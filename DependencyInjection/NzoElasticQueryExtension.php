@@ -34,5 +34,6 @@ class NzoElasticQueryExtension extends Extension
         $container->setParameter('nzo_elastic_index.default_page_number', $config['default_page_number']);
         $container->setParameter('nzo_elastic_index.limit_per_page', $config['limit_per_page']);
         $container->setParameter('nzo_elastic_index.items_max_limit', $config['items_max_limit']);
+        $container->setParameter('nzo_elastic_index.show_score', $config['show_score']);
     }
 }

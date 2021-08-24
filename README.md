@@ -58,6 +58,7 @@ nzo_elastic_query:
     default_page_number:   # optional (default 1)
     limit_per_page:        # optional (default 100)
     items_max_limit:       # optional (default 1000)
+    show_score:            # optional (default false)
     
 ```
 
@@ -102,6 +103,23 @@ class MyClass
         );
     }
 }
+```
+
+When **show_score** is enabled, you must add the field **_scoreElastic** to the needed entities and add the field **getter** and **setter** (getScoreElastic & setScoreElastic)
+```php
+    private float $_scoreElastic;
+
+    public function getScoreElastic(): float
+    {
+        return $this->_scoreElastic;
+    }
+
+    public function setScoreElastic(float $scoreElastic): self
+    {
+        $this->_scoreElastic = $scoreElastic;
+
+        return $this;
+    }
 ```
 
 Configure index

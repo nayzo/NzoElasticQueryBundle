@@ -37,6 +37,9 @@ class Configuration implements ConfigurationInterface
                 ->integerNode('items_max_limit')
                     ->defaultValue(1000)
                 ->end()
+                ->booleanNode('show_score')
+                    ->defaultValue(false)
+                ->end()
             ->end();
 
         return $treeBuilder;
